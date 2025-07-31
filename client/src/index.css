@@ -1,0 +1,177 @@
+@import url('https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800&family=Inter:wght@300;400;500;600&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --background: hsl(0, 0%, 100%);
+  --foreground: hsl(20, 14.3%, 4.1%);
+  --muted: hsl(60, 4.8%, 95.9%);
+  --muted-foreground: hsl(25, 5.3%, 44.7%);
+  --popover: hsl(0, 0%, 100%);
+  --popover-foreground: hsl(20, 14.3%, 4.1%);
+  --card: hsl(0, 0%, 100%);
+  --card-foreground: hsl(20, 14.3%, 4.1%);
+  --border: hsl(20, 5.9%, 90%);
+  --input: hsl(20, 5.9%, 90%);
+  --primary: hsl(207, 90%, 54%);
+  --primary-foreground: hsl(211, 100%, 99%);
+  --secondary: hsl(60, 4.8%, 95.9%);
+  --secondary-foreground: hsl(24, 9.8%, 10%);
+  --accent: hsl(60, 4.8%, 95.9%);
+  --accent-foreground: hsl(24, 9.8%, 10%);
+  --destructive: hsl(0, 84.2%, 60.2%);
+  --destructive-foreground: hsl(60, 9.1%, 97.8%);
+  --ring: hsl(20, 14.3%, 4.1%);
+  --radius: 0.5rem;
+
+  /* My Pocket Sister Custom Colors */
+  --primary-pink: hsl(330, 100%, 71%);
+  --primary-purple: hsl(270, 91%, 65%);
+  --pastel-rose: hsl(0, 100%, 94%);
+  --pastel-lavender: hsl(240, 67%, 94%);
+  --pastel-blue: hsl(208, 100%, 97%);
+  --accent-gold: hsl(51, 100%, 50%);
+  --accent-green: hsl(123, 46%, 34%);
+}
+
+.dark {
+  --background: hsl(240, 10%, 3.9%);
+  --foreground: hsl(0, 0%, 98%);
+  --muted: hsl(240, 3.7%, 15.9%);
+  --muted-foreground: hsl(240, 5%, 64.9%);
+  --popover: hsl(240, 10%, 3.9%);
+  --popover-foreground: hsl(0, 0%, 98%);
+  --card: hsl(240, 10%, 3.9%);
+  --card-foreground: hsl(0, 0%, 98%);
+  --border: hsl(240, 3.7%, 15.9%);
+  --input: hsl(240, 3.7%, 15.9%);
+  --primary: hsl(207, 90%, 54%);
+  --primary-foreground: hsl(211, 100%, 99%);
+  --secondary: hsl(240, 3.7%, 15.9%);
+  --secondary-foreground: hsl(0, 0%, 98%);
+  --accent: hsl(240, 3.7%, 15.9%);
+  --accent-foreground: hsl(0, 0%, 98%);
+  --destructive: hsl(0, 62.8%, 30.6%);
+  --destructive-foreground: hsl(0, 0%, 98%);
+  --ring: hsl(240, 4.9%, 83.9%);
+  --radius: 0.5rem;
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+
+  body {
+    @apply font-sans antialiased bg-background text-foreground;
+  }
+}
+
+.font-nunito {
+  font-family: 'Nunito', sans-serif;
+}
+
+.font-inter {
+  font-family: 'Inter', sans-serif;
+}
+
+.bg-primary-pink {
+  background-color: hsl(var(--primary-pink));
+}
+
+.text-primary-pink {
+  color: hsl(var(--primary-pink));
+}
+
+.bg-primary-purple {
+  background-color: hsl(var(--primary-purple));
+}
+
+.text-primary-purple {
+  color: hsl(var(--primary-purple));
+}
+
+.bg-pastel-rose {
+  background-color: hsl(var(--pastel-rose));
+}
+
+.bg-pastel-lavender {
+  background-color: hsl(var(--pastel-lavender));
+}
+
+.bg-pastel-blue {
+  background-color: hsl(var(--pastel-blue));
+}
+
+.bg-accent-gold {
+  background-color: hsl(var(--accent-gold));
+}
+
+.text-accent-gold {
+  color: hsl(var(--accent-gold));
+}
+
+.bg-accent-green {
+  background-color: hsl(var(--accent-green));
+}
+
+.text-accent-green {
+  color: hsl(var(--accent-green));
+}
+
+.border-primary-pink {
+  border-color: hsl(var(--primary-pink));
+}
+
+.border-primary-purple {
+  border-color: hsl(var(--primary-purple));
+}
+
+.hover\:bg-primary-pink:hover {
+  background-color: hsl(var(--primary-pink));
+}
+
+.hover\:text-primary-pink:hover {
+  color: hsl(var(--primary-pink));
+}
+
+.hover\:bg-primary-purple:hover {
+  background-color: hsl(var(--primary-purple));
+}
+
+.hover\:text-primary-purple:hover {
+  color: hsl(var(--primary-purple));
+}
+
+.gradient-pink-purple {
+  background: linear-gradient(135deg, hsl(var(--primary-pink)), hsl(var(--primary-purple)));
+}
+
+.gradient-purple-green {
+  background: linear-gradient(135deg, hsl(var(--primary-purple)), hsl(var(--accent-green)));
+}
+
+.gradient-green-gold {
+  background: linear-gradient(135deg, hsl(var(--accent-green)), hsl(var(--accent-gold)));
+}
+
+.gradient-gold-pink {
+  background: linear-gradient(135deg, hsl(var(--accent-gold)), hsl(var(--primary-pink)));
+}
+
+.text-gradient-pink-purple {
+  background: linear-gradient(135deg, hsl(var(--primary-pink)), hsl(var(--primary-purple)));
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.animate-bounce-slow {
+  animation: bounce 2s infinite;
+}
+
+.animate-pulse-slow {
+  animation: pulse 3s infinite;
+}

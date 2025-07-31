@@ -1,0 +1,51 @@
+{
+  "app": {
+    "name": "My Pocket Sister",
+    "displayName": "My Pocket Sister",
+    "description": "AI-powered virtual companion for young girls aged 10-14",
+    "version": "1.0.0",
+    "buildNumber": "1",
+    "bundleId": "com.mypocketsister.app",
+    "packageName": "com.mypocketsister.app"
+  },
+  "webview": {
+    "url": "https://my-pocket-sister.replit.app/",
+    "fallbackUrl": "https://mypocketsister.com/",
+    "userAgent": "MyPocketSister-Mobile/1.0.0"
+  },
+  "features": {
+    "pushNotifications": true,
+    "biometricAuth": true,
+    "offlineSupport": true,
+    "deepLinking": true
+  },
+  "privacy": {
+    "dataCollection": {
+      "personalInfo": true,
+      "usage": true,
+      "diagnostics": false
+    },
+    "thirdPartySharing": false,
+    "encryption": true
+  },
+  "contentRating": {
+    "android": "ESRB_EVERYONE_10_PLUS",
+    "ios": "9+"
+  },
+  "permissions": {
+    "android": [
+      "INTERNET",
+      "ACCESS_NETWORK_STATE",
+      "WAKE_LOCK",
+      "VIBRATE",
+      "USE_FINGERPRINT",
+      "USE_BIOMETRIC"
+    ],
+    "ios": [
+      "NSCameraUsageDescription",
+      "NSMicrophoneUsageDescription",
+      "NSLocationWhenInUseUsageDescription",
+      "NSFaceIDUsageDescription"
+    ]
+  }
+}

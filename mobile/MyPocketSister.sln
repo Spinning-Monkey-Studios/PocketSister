@@ -1,0 +1,61 @@
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.0.31903.59
+MinimumVisualStudioVersion = 10.0.40219.1
+
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Android", "Android", "{A1111111-1111-1111-1111-111111111111}"
+	ProjectSection(SolutionItems) = preProject
+		android\build.gradle = android\build.gradle
+		android\gradle.properties = android\gradle.properties
+		android\app\build.gradle = android\app\build.gradle
+		android\app\src\main\AndroidManifest.xml = android\app\src\main\AndroidManifest.xml
+	EndProjectSection
+EndProject
+
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "iOS", "iOS", "{B2222222-2222-2222-2222-222222222222}"
+	ProjectSection(SolutionItems) = preProject
+		ios\MyPocketSister.xcodeproj\project.pbxproj = ios\MyPocketSister.xcodeproj\project.pbxproj
+		ios\MyPocketSister\Info.plist = ios\MyPocketSister\Info.plist
+		ios\MyPocketSister\ViewController.swift = ios\MyPocketSister\ViewController.swift
+		ios\MyPocketSister\AppDelegate.swift = ios\MyPocketSister\AppDelegate.swift
+	EndProjectSection
+EndProject
+
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Shared", "Shared", "{C3333333-3333-3333-3333-333333333333}"
+	ProjectSection(SolutionItems) = preProject
+		shared\app-config.json = shared\app-config.json
+		README.md = README.md
+	EndProjectSection
+EndProject
+
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Deployment", "Deployment", "{D4444444-4444-4444-4444-444444444444}"
+	ProjectSection(SolutionItems) = preProject
+		deployment\submission-checklist.md = deployment\submission-checklist.md
+		deployment\signing-certificates.md = deployment\signing-certificates.md
+		deployment\google-play\store-listing.md = deployment\google-play\store-listing.md
+		deployment\app-store\app-store-listing.md = deployment\app-store\app-store-listing.md
+	EndProjectSection
+EndProject
+
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Android Source", "Android Source", "{E5555555-5555-5555-5555-555555555555}"
+	ProjectSection(SolutionItems) = preProject
+		android\app\src\main\java\com\mypocketsister\app\MainActivity.kt = android\app\src\main\java\com\mypocketsister\app\MainActivity.kt
+		android\app\src\main\res\layout\activity_main.xml = android\app\src\main\res\layout\activity_main.xml
+		android\app\src\main\res\values\strings.xml = android\app\src\main\res\values\strings.xml
+		android\app\src\main\res\values\colors.xml = android\app\src\main\res\values\colors.xml
+	EndProjectSection
+EndProject
+
+Global
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	
+	GlobalSection(NestedProjects) = preSolution
+		{E5555555-5555-5555-5555-555555555555} = {A1111111-1111-1111-1111-111111111111}
+	EndGlobalSection
+	
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {F6666666-6666-6666-6666-666666666666}
+	EndGlobalSection
+EndGlobal

@@ -1,0 +1,73 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Primary Brand Colors -->
+    <color name="colorPrimary">#6366F1</color>
+    <color name="colorPrimaryVariant">#4F46E5</color>
+    <color name="colorOnPrimary">#FFFFFF</color>
+    
+    <!-- Secondary Colors -->
+    <color name="colorSecondary">#EC4899</color>
+    <color name="colorSecondaryVariant">#DB2777</color>
+    <color name="colorOnSecondary">#FFFFFF</color>
+    
+    <!-- Background Colors -->
+    <color name="colorBackground">#FAFAFA</color>
+    <color name="colorOnBackground">#1F2937</color>
+    <color name="colorSurface">#FFFFFF</color>
+    <color name="colorOnSurface">#1F2937</color>
+    
+    <!-- Accent Colors -->
+    <color name="colorAccent">#10B981</color>
+    <color name="colorError">#EF4444</color>
+    <color name="colorOnError">#FFFFFF</color>
+    <color name="colorWarning">#F59E0B</color>
+    <color name="colorSuccess">#10B981</color>
+    
+    <!-- Status Bar and Navigation -->
+    <color name="statusBarColor">#4F46E5</color>
+    <color name="navigationBarColor">#FFFFFF</color>
+    
+    <!-- Text Colors -->
+    <color name="textPrimary">#111827</color>
+    <color name="textSecondary">#6B7280</color>
+    <color name="textTertiary">#9CA3AF</color>
+    
+    <!-- Component Colors -->
+    <color name="divider">#E5E7EB</color>
+    <color name="border">#D1D5DB</color>
+    <color name="overlay">#80000000</color>
+    
+    <!-- Semantic Colors -->
+    <color name="safe_green">#10B981</color>
+    <color name="warning_yellow">#F59E0B</color>
+    <color name="danger_red">#EF4444</color>
+    <color name="info_blue">#3B82F6</color>
+    
+    <!-- Material Design System Colors -->
+    <color name="md_theme_light_primary">#6366F1</color>
+    <color name="md_theme_light_onPrimary">#FFFFFF</color>
+    <color name="md_theme_light_primaryContainer">#E0E7FF</color>
+    <color name="md_theme_light_onPrimaryContainer">#1E1B16</color>
+    <color name="md_theme_light_secondary">#EC4899</color>
+    <color name="md_theme_light_onSecondary">#FFFFFF</color>
+    <color name="md_theme_light_secondaryContainer">#FCE7F3</color>
+    <color name="md_theme_light_onSecondaryContainer">#1E1B16</color>
+    
+    <!-- Dark Theme Colors -->
+    <color name="md_theme_dark_primary">#A5B4FC</color>
+    <color name="md_theme_dark_onPrimary">#1E1B16</color>
+    <color name="md_theme_dark_primaryContainer">#4F46E5</color>
+    <color name="md_theme_dark_onPrimaryContainer">#E0E7FF</color>
+    <color name="md_theme_dark_secondary">#F9A8D4</color>
+    <color name="md_theme_dark_onSecondary">#1E1B16</color>
+    <color name="md_theme_dark_secondaryContainer">#DB2777</color>
+    <color name="md_theme_dark_onSecondaryContainer">#FCE7F3</color>
+    
+    <!-- Progress Bar Colors -->
+    <color name="progress_background">#E5E7EB</color>
+    <color name="progress_foreground">#6366F1</color>
+    
+    <!-- Splash Screen -->
+    <color name="splash_background">#6366F1</color>
+    <color name="splash_logo_tint">#FFFFFF</color>
+</resources>
