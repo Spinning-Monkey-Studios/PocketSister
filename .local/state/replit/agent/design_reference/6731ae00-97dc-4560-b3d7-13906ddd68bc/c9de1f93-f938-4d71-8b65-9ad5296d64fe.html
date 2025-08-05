@@ -1,0 +1,880 @@
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>My Pocket Sister - Your AI Companion for Growth & Inspiration</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        'primary-pink': '#FF69B4',
+                        'primary-purple': '#9333EA',
+                        'pastel-rose': '#FFE4E1',
+                        'pastel-lavender': '#E6E6FA',
+                        'pastel-blue': '#F0F8FF',
+                        'accent-gold': '#FFD700',
+                        'accent-green': '#32CD32',
+                    },
+                    fontFamily: {
+                        'nunito': ['Nunito', 'sans-serif'],
+                        'inter': ['Inter', 'sans-serif'],
+                    }
+                }
+            }
+        };
+    </script>
+    <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+</head>
+<body class="font-inter bg-white text-gray-800">
+
+    <!-- Navigation -->
+    <!-- @COMPONENT: Navigation [responsive, mobile menu toggle] -->
+    <nav class="bg-white shadow-lg sticky top-0 z-50">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between items-center h-16">
+                <div class="flex items-center">
+                    <div class="flex-shrink-0 flex items-center">
+                        <i class="fas fa-heart text-primary-pink text-2xl mr-2"></i>
+                        <span class="font-nunito font-bold text-xl text-primary-purple">My Pocket Sister</span>
+                    </div>
+                </div>
+                
+                <div class="hidden md:block">
+                    <div class="ml-10 flex items-baseline space-x-4">
+                        <a href="#features" class="hover:text-primary-pink px-3 py-2 rounded-md text-sm font-medium transition-colors">Features</a>
+                        <a href="#testimonials" class="hover:text-primary-pink px-3 py-2 rounded-md text-sm font-medium transition-colors">Stories</a>
+                        <a href="#blog" class="hover:text-primary-pink px-3 py-2 rounded-md text-sm font-medium transition-colors">Blog</a>
+                        <a href="#parents" class="hover:text-primary-pink px-3 py-2 rounded-md text-sm font-medium transition-colors">For Parents</a>
+                        <button class="bg-gradient-to-r from-primary-pink to-primary-purple text-white px-6 py-2 rounded-full font-medium hover:shadow-lg transition-all">Get Started</button>
+                    </div>
+                </div>
+                
+                <div class="md:hidden">
+                    <button class="text-gray-700 hover:text-primary-pink" data-event="click:toggleMobileMenu">
+                        <i class="fas fa-bars text-xl"></i>
+                    </button>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Mobile menu -->
+        <div class="md:hidden hidden" id="mobile-menu" data-implementation="Toggle visibility with JavaScript">
+            <div class="px-2 pt-2 pb-3 space-y-1 sm:px-3 bg-pastel-lavender">
+                <a href="#features" class="block px-3 py-2 text-base font-medium hover:text-primary-pink">Features</a>
+                <a href="#testimonials" class="block px-3 py-2 text-base font-medium hover:text-primary-pink">Stories</a>
+                <a href="#blog" class="block px-3 py-2 text-base font-medium hover:text-primary-pink">Blog</a>
+                <a href="#parents" class="block px-3 py-2 text-base font-medium hover:text-primary-pink">For Parents</a>
+                <button class="w-full text-left bg-gradient-to-r from-primary-pink to-primary-purple text-white px-3 py-2 rounded-lg font-medium mt-2">Get Started</button>
+            </div>
+        </div>
+    </nav>
+    <!-- @END_COMPONENT: Navigation -->
+
+    <!-- Hero Section -->
+    <!-- @COMPONENT: HeroSection [AI avatar demo, main CTA] -->
+    <section class="bg-gradient-to-br from-pastel-blue via-pastel-lavender to-pastel-rose py-20">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="grid lg:grid-cols-2 gap-12 items-center">
+                <div class="text-center lg:text-left">
+                    <h1 class="font-nunito font-bold text-4xl md:text-6xl text-gray-800 mb-6">
+                        Meet Your 
+                        <span class="text-transparent bg-clip-text bg-gradient-to-r from-primary-pink to-primary-purple">Pocket Sister</span>
+                    </h1>
+                    <p class="text-lg md:text-xl text-gray-600 mb-8 leading-relaxed">
+                        An AI companion designed to inspire, support, and empower young girls with personalized advice, motivational messages, and fun activities that help you grow into your amazing self!
+                    </p>
+                    <div class="flex flex-col sm:flex-row gap-4 justify-center lg:justify-start">
+                        <button class="bg-gradient-to-r from-primary-pink to-primary-purple text-white px-8 py-4 rounded-full font-semibold text-lg hover:shadow-xl transform hover:scale-105 transition-all">
+                            <i class="fas fa-rocket mr-2"></i>Start Your Journey
+                        </button>
+                        <button class="border-2 border-primary-purple text-primary-purple px-8 py-4 rounded-full font-semibold text-lg hover:bg-primary-purple hover:text-white transition-all">
+                            <i class="fas fa-play mr-2"></i>Watch Demo
+                        </button>
+                    </div>
+                </div>
+                
+                <div class="relative">
+                    <!-- AI Avatar Demo Container -->
+                    <div class="bg-white rounded-3xl shadow-2xl p-8 relative overflow-hidden">
+                        <div class="absolute top-0 left-0 w-full h-2 bg-gradient-to-r from-primary-pink via-accent-gold to-primary-purple"></div>
+                        
+                        <!-- Avatar Character -->
+                        <div class="text-center mb-6">
+                            <div class="w-24 h-24 bg-gradient-to-br from-primary-pink to-primary-purple rounded-full mx-auto mb-4 flex items-center justify-center">
+                                <i class="fas fa-user-astronaut text-white text-3xl"></i>
+                            </div>
+                            <h3 class="font-nunito font-bold text-xl text-gray-800">Hi! I'm Stella ✨</h3>
+                            <p class="text-sm text-gray-600">Your AI Pocket Sister</p>
+                        </div>
+                        
+                        <!-- Demo Message -->
+                        <div class="bg-pastel-lavender rounded-2xl p-4 mb-4" data-mock="true">
+                            <p class="text-gray-700 font-medium">💫 "Remember, every expert was once a beginner. You're doing amazing by trying new things! What would you like to explore today?"</p>
+                        </div>
+                        
+                        <!-- Interactive Buttons -->
+                        <div class="grid grid-cols-2 gap-3">
+                            <button class="bg-accent-green bg-opacity-20 text-accent-green px-4 py-2 rounded-xl font-medium hover:bg-opacity-30 transition-all" data-implementation="Trigger motivational message">
+                                <i class="fas fa-heart mr-1"></i>Inspire Me
+                            </button>
+                            <button class="bg-primary-pink bg-opacity-20 text-primary-pink px-4 py-2 rounded-xl font-medium hover:bg-opacity-30 transition-all" data-implementation="Show advice interface">
+                                <i class="fas fa-lightbulb mr-1"></i>Get Advice
+                            </button>
+                            <button class="bg-accent-gold bg-opacity-20 text-yellow-700 px-4 py-2 rounded-xl font-medium hover:bg-opacity-30 transition-all" data-implementation="Display activity suggestions">
+                                <i class="fas fa-gamepad mr-1"></i>Fun Activity
+                            </button>
+                            <button class="bg-primary-purple bg-opacity-20 text-primary-purple px-4 py-2 rounded-xl font-medium hover:bg-opacity-30 transition-all" data-implementation="Health reminder system">
+                                <i class="fas fa-apple-alt mr-1"></i>Health Tip
+                            </button>
+                        </div>
+                    </div>
+                    
+                    <!-- Floating Elements -->
+                    <div class="absolute -top-4 -left-4 text-4xl animate-bounce">⭐</div>
+                    <div class="absolute -bottom-4 -right-4 text-4xl animate-pulse">🌈</div>
+                </div>
+            </div>
+        </div>
+    </section>
+    <!-- @END_COMPONENT: HeroSection -->
+
+    <!-- Features Section -->
+    <!-- @COMPONENT: FeaturesSection [feature cards with icons] -->
+    <section id="features" class="py-20 bg-white">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="text-center mb-16">
+                <h2 class="font-nunito font-bold text-3xl md:text-5xl text-gray-800 mb-4">
+                    Amazing Features Just for <span class="text-primary-pink">You!</span>
+                </h2>
+                <p class="text-xl text-gray-600 max-w-3xl mx-auto">
+                    My Pocket Sister is packed with incredible features designed to support your growth, creativity, and happiness every single day.
+                </p>
+            </div>
+            
+            <div class="grid md:grid-cols-2 lg:grid-cols-4 gap-8">
+                <!-- Feature 1: Motivational Messages -->
+                <div class="bg-gradient-to-br from-pastel-rose to-white p-8 rounded-3xl shadow-lg hover:shadow-xl transition-shadow">
+                    <div class="w-16 h-16 bg-primary-pink rounded-2xl flex items-center justify-center mb-6 mx-auto">
+                        <i class="fas fa-quote-right text-white text-2xl"></i>
+                    </div>
+                    <h3 class="font-nunito font-bold text-xl text-gray-800 mb-4 text-center">Daily Inspiration</h3>
+                    <p class="text-gray-600 text-center mb-4">Get personalized motivational messages that lift your spirits and remind you how amazing you are!</p>
+                    <div class="bg-white rounded-xl p-3 text-sm text-gray-700 italic" data-mock="true">
+                        "You have the power to create positive change in the world! 🌟"
+                    </div>
+                </div>
+                
+                <!-- Feature 2: Personalized Advice -->
+                <div class="bg-gradient-to-br from-pastel-lavender to-white p-8 rounded-3xl shadow-lg hover:shadow-xl transition-shadow">
+                    <div class="w-16 h-16 bg-primary-purple rounded-2xl flex items-center justify-center mb-6 mx-auto">
+                        <i class="fas fa-brain text-white text-2xl"></i>
+                    </div>
+                    <h3 class="font-nunito font-bold text-xl text-gray-800 mb-4 text-center">Smart Advice</h3>
+                    <p class="text-gray-600 text-center mb-4">Ask questions about school, friends, or life - get thoughtful, age-appropriate guidance tailored just for you.</p>
+                    <div class="bg-white rounded-xl p-3 text-sm text-gray-700 italic" data-mock="true">
+                        "Having trouble with a friend? Let's talk through it together! 💭"
+                    </div>
+                </div>
+                
+                <!-- Feature 3: Health Reminders -->
+                <div class="bg-gradient-to-br from-accent-green bg-opacity-20 to-white p-8 rounded-3xl shadow-lg hover:shadow-xl transition-shadow">
+                    <div class="w-16 h-16 bg-accent-green rounded-2xl flex items-center justify-center mb-6 mx-auto">
+                        <i class="fas fa-heartbeat text-white text-2xl"></i>
+                    </div>
+                    <h3 class="font-nunito font-bold text-xl text-gray-800 mb-4 text-center">Healthy Habits</h3>
+                    <p class="text-gray-600 text-center mb-4">Gentle reminders to drink water, move your body, and take care of your mental wellbeing.</p>
+                    <div class="bg-white rounded-xl p-3 text-sm text-gray-700 italic" data-mock="true">
+                        "Time for a water break! Stay hydrated, superstar! 💧"
+                    </div>
+                </div>
+                
+                <!-- Feature 4: Fun Activities -->
+                <div class="bg-gradient-to-br from-accent-gold bg-opacity-20 to-white p-8 rounded-3xl shadow-lg hover:shadow-xl transition-shadow">
+                    <div class="w-16 h-16 bg-accent-gold rounded-2xl flex items-center justify-center mb-6 mx-auto">
+                        <i class="fas fa-palette text-white text-2xl"></i>
+                    </div>
+                    <h3 class="font-nunito font-bold text-xl text-gray-800 mb-4 text-center">Creative Fun</h3>
+                    <p class="text-gray-600 text-center mb-4">Discover new hobbies, creative challenges, and fun activities to spark your imagination and keep you engaged.</p>
+                    <div class="bg-white rounded-xl p-3 text-sm text-gray-700 italic" data-mock="true">
+                        "Let's try making friendship bracelets today! 🌈"
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Feature Images -->
+            <div class="mt-16 grid md:grid-cols-3 gap-8">
+                <!-- Young girls learning and playing -->
+                <div class="relative overflow-hidden rounded-2xl shadow-lg">
+                    <img src="https://images.unsplash.com/photo-1503454537195-1dcabb73ffb9?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&h=600" alt="Young girls engaged in collaborative learning" class="w-full h-64 object-cover" />
+                    <div class="absolute inset-0 bg-gradient-to-t from-primary-pink via-transparent to-transparent opacity-60"></div>
+                    <div class="absolute bottom-4 left-4 text-white">
+                        <h4 class="font-bold text-lg">Learn Together</h4>
+                        <p class="text-sm">Collaborative growth and discovery</p>
+                    </div>
+                </div>
+                
+                <!-- Inspiring educational activities -->
+                <div class="relative overflow-hidden rounded-2xl shadow-lg">
+                    <img src="https://images.unsplash.com/photo-1544717297-fa95b6ee9643?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&h=600" alt="Creative educational STEM activities for young learners" class="w-full h-64 object-cover" />
+                    <div class="absolute inset-0 bg-gradient-to-t from-primary-purple via-transparent to-transparent opacity-60"></div>
+                    <div class="absolute bottom-4 left-4 text-white">
+                        <h4 class="font-bold text-lg">Explore & Create</h4>
+                        <p class="text-sm">Hands-on learning adventures</p>
+                    </div>
+                </div>
+                
+                <!-- Creative arts and crafts -->
+                <div class="relative overflow-hidden rounded-2xl shadow-lg">
+                    <img src="https://images.unsplash.com/photo-1513475382585-d06e58bcb0e0?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&h=600" alt="Children's hands creating colorful arts and crafts projects" class="w-full h-64 object-cover" />
+                    <div class="absolute inset-0 bg-gradient-to-t from-accent-green via-transparent to-transparent opacity-60"></div>
+                    <div class="absolute bottom-4 left-4 text-white">
+                        <h4 class="font-bold text-lg">Express Yourself</h4>
+                        <p class="text-sm">Artistic creativity unleashed</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+    <!-- @END_COMPONENT: FeaturesSection -->
+
+    <!-- Testimonials Section -->
+    <!-- @COMPONENT: TestimonialsSection [carousel with user stories] -->
+    <section id="testimonials" class="py-20 bg-gradient-to-br from-pastel-blue to-pastel-lavender">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="text-center mb-16">
+                <h2 class="font-nunito font-bold text-3xl md:text-5xl text-gray-800 mb-4">
+                    Amazing Stories from <span class="text-primary-purple">Our Community</span>
+                </h2>
+                <p class="text-xl text-gray-600 max-w-3xl mx-auto">
+                    See how My Pocket Sister is making a positive difference in the lives of young girls everywhere!
+                </p>
+            </div>
+            
+            <div class="grid md:grid-cols-3 gap-8">
+                <!-- @MAP: testimonials.map(testimonial => ( -->
+                <!-- Testimonial 1 -->
+                <div class="bg-white rounded-3xl p-8 shadow-lg hover:shadow-xl transition-shadow" data-mock="true">
+                    <div class="flex items-center mb-6">
+                        <div class="w-12 h-12 bg-gradient-to-r from-primary-pink to-primary-purple rounded-full flex items-center justify-center text-white font-bold">
+                            E
+                        </div>
+                        <div class="ml-4">
+                            <h4 class="font-bold text-gray-800">Emma, 12</h4>
+                            <div class="flex text-accent-gold">
+                                <i class="fas fa-star"></i>
+                                <i class="fas fa-star"></i>
+                                <i class="fas fa-star"></i>
+                                <i class="fas fa-star"></i>
+                                <i class="fas fa-star"></i>
+                            </div>
+                        </div>
+                    </div>
+                    <p class="text-gray-700 mb-4 italic">
+                        "My Pocket Sister helped me feel more confident about starting middle school. The daily motivational messages make me smile every morning!"
+                    </p>
+                    <div class="flex justify-between items-center text-sm text-gray-500">
+                        <span>Verified User</span>
+                        <i class="fas fa-heart text-primary-pink"></i>
+                    </div>
+                </div>
+                
+                <!-- Testimonial 2 -->
+                <div class="bg-white rounded-3xl p-8 shadow-lg hover:shadow-xl transition-shadow" data-mock="true">
+                    <div class="flex items-center mb-6">
+                        <div class="w-12 h-12 bg-gradient-to-r from-primary-purple to-accent-green rounded-full flex items-center justify-center text-white font-bold">
+                            S
+                        </div>
+                        <div class="ml-4">
+                            <h4 class="font-bold text-gray-800">Sophia, 13</h4>
+                            <div class="flex text-accent-gold">
+                                <i class="fas fa-star"></i>
+                                <i class="fas fa-star"></i>
+                                <i class="fas fa-star"></i>
+                                <i class="fas fa-star"></i>
+                                <i class="fas fa-star"></i>
+                            </div>
+                        </div>
+                    </div>
+                    <p class="text-gray-700 mb-4 italic">
+                        "I love the creative activity suggestions! Yesterday I learned how to make origami flowers and surprised my mom. The app makes learning so fun!"
+                    </p>
+                    <div class="flex justify-between items-center text-sm text-gray-500">
+                        <span>Verified User</span>
+                        <i class="fas fa-heart text-primary-pink"></i>
+                    </div>
+                </div>
+                
+                <!-- Testimonial 3 -->
+                <div class="bg-white rounded-3xl p-8 shadow-lg hover:shadow-xl transition-shadow" data-mock="true">
+                    <div class="flex items-center mb-6">
+                        <div class="w-12 h-12 bg-gradient-to-r from-accent-gold to-primary-pink rounded-full flex items-center justify-center text-white font-bold">
+                            M
+                        </div>
+                        <div class="ml-4">
+                            <h4 class="font-bold text-gray-800">Maya, 11</h4>
+                            <div class="flex text-accent-gold">
+                                <i class="fas fa-star"></i>
+                                <i class="fas fa-star"></i>
+                                <i class="fas fa-star"></i>
+                                <i class="fas fa-star"></i>
+                                <i class="fas fa-star"></i>
+                            </div>
+                        </div>
+                    </div>
+                    <p class="text-gray-700 mb-4 italic">
+                        "When I was feeling worried about a friendship problem, my Pocket Sister gave me really good advice that helped me talk to my friend. We're closer now!"
+                    </p>
+                    <div class="flex justify-between items-center text-sm text-gray-500">
+                        <span>Verified User</span>
+                        <i class="fas fa-heart text-primary-pink"></i>
+                    </div>
+                </div>
+                <!-- @END_MAP )) -->
+            </div>
+            
+            <!-- Carousel Controls -->
+            <div class="flex justify-center mt-8 space-x-4" data-implementation="Connect to testimonial carousel functionality">
+                <button class="w-3 h-3 bg-primary-pink rounded-full"></button>
+                <button class="w-3 h-3 bg-gray-300 rounded-full hover:bg-primary-pink transition-colors"></button>
+                <button class="w-3 h-3 bg-gray-300 rounded-full hover:bg-primary-pink transition-colors"></button>
+            </div>
+        </div>
+    </section>
+    <!-- @END_COMPONENT: TestimonialsSection -->
+
+    <!-- Blog Section -->
+    <!-- @COMPONENT: BlogSection [categorized content grid] -->
+    <section id="blog" class="py-20 bg-white">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="text-center mb-16">
+                <h2 class="font-nunito font-bold text-3xl md:text-5xl text-gray-800 mb-4">
+                    Discover & <span class="text-primary-purple">Learn</span>
+                </h2>
+                <p class="text-xl text-gray-600 max-w-3xl mx-auto">
+                    Explore our blog for tips on friendship, creativity, self-care, and so much more. Written just for amazing girls like you!
+                </p>
+            </div>
+            
+            <!-- Category Filters -->
+            <div class="flex flex-wrap justify-center gap-4 mb-12" data-implementation="Filter blog posts by category">
+                <button class="bg-primary-pink text-white px-6 py-2 rounded-full font-medium">All Posts</button>
+                <button class="bg-gray-200 text-gray-700 px-6 py-2 rounded-full font-medium hover:bg-primary-pink hover:text-white transition-colors">Friendship</button>
+                <button class="bg-gray-200 text-gray-700 px-6 py-2 rounded-full font-medium hover:bg-primary-pink hover:text-white transition-colors">Creativity</button>
+                <button class="bg-gray-200 text-gray-700 px-6 py-2 rounded-full font-medium hover:bg-primary-pink hover:text-white transition-colors">Self-Care</button>
+                <button class="bg-gray-200 text-gray-700 px-6 py-2 rounded-full font-medium hover:bg-primary-pink hover:text-white transition-colors">Growth</button>
+            </div>
+            
+            <div class="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
+                <!-- @MAP: blogPosts.map(post => ( -->
+                <!-- Blog Post 1: Friendship -->
+                <article class="bg-white rounded-3xl shadow-lg overflow-hidden hover:shadow-xl transition-shadow" data-mock="true">
+                    <!-- Young girls learning and playing together in a classroom setting -->
+                    <img src="https://pixabay.com/get/g89c59be89236315c2c88c83b556be6ed7b494710f59e1a6f0fa969c6df5c659e7bc441cd96674e278df32277878e8d766d795d622a7c502615817c173b4e60bc_1280.jpg" alt="Young girls collaborating and learning together in friendship" class="w-full h-48 object-cover" />
+                    <div class="p-6">
+                        <div class="flex items-center mb-3">
+                            <span class="bg-primary-pink text-white px-3 py-1 rounded-full text-xs font-medium">Friendship</span>
+                            <span class="text-gray-500 text-sm ml-3">5 min read</span>
+                        </div>
+                        <h3 class="font-nunito font-bold text-xl text-gray-800 mb-3">Making New Friends: Your Ultimate Guide</h3>
+                        <p class="text-gray-600 mb-4">Discover simple, confidence-boosting tips for meeting new people and building lasting friendships that will make your school days even more amazing!</p>
+                        <div class="flex items-center justify-between">
+                            <button class="text-primary-pink font-medium hover:text-primary-purple transition-colors">Read More →</button>
+                            <div class="flex items-center text-gray-500 text-sm">
+                                <i class="fas fa-heart mr-1"></i>
+                                <span>24</span>
+                            </div>
+                        </div>
+                    </div>
+                </article>
+                
+                <!-- Blog Post 2: Creativity -->
+                <article class="bg-white rounded-3xl shadow-lg overflow-hidden hover:shadow-xl transition-shadow" data-mock="true">
+                    <!-- Creative arts and crafts materials and projects -->
+                    <img src="https://images.unsplash.com/photo-1558618666-fcd25c85cd64?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&h=400" alt="Colorful art supplies and creative materials for DIY projects" class="w-full h-48 object-cover" />
+                    <div class="p-6">
+                        <div class="flex items-center mb-3">
+                            <span class="bg-accent-gold text-white px-3 py-1 rounded-full text-xs font-medium">Creativity</span>
+                            <span class="text-gray-500 text-sm ml-3">7 min read</span>
+                        </div>
+                        <h3 class="font-nunito font-bold text-xl text-gray-800 mb-3">10 Fun DIY Projects for Rainy Days</h3>
+                        <p class="text-gray-600 mb-4">Transform boring indoor time into creative adventures with these easy, budget-friendly craft projects that will spark your imagination!</p>
+                        <div class="flex items-center justify-between">
+                            <button class="text-primary-pink font-medium hover:text-primary-purple transition-colors">Read More →</button>
+                            <div class="flex items-center text-gray-500 text-sm">
+                                <i class="fas fa-heart mr-1"></i>
+                                <span>31</span>
+                            </div>
+                        </div>
+                    </div>
+                </article>
+                
+                <!-- Blog Post 3: Self-Care -->
+                <article class="bg-white rounded-3xl shadow-lg overflow-hidden hover:shadow-xl transition-shadow" data-mock="true">
+                    <!-- Inspiring educational activities showing personal growth -->
+                    <img src="https://images.unsplash.com/photo-1571019613454-1cb2f99b2d8b?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&h=400" alt="Young person practicing mindfulness and self-care activities" class="w-full h-48 object-cover" />
+                    <div class="p-6">
+                        <div class="flex items-center mb-3">
+                            <span class="bg-accent-green text-white px-3 py-1 rounded-full text-xs font-medium">Self-Care</span>
+                            <span class="text-gray-500 text-sm ml-3">4 min read</span>
+                        </div>
+                        <h3 class="font-nunito font-bold text-xl text-gray-800 mb-3">Building Confidence: Small Steps, Big Changes</h3>
+                        <p class="text-gray-600 mb-4">Learn simple daily practices that will help you feel more confident, positive, and ready to take on any challenge that comes your way!</p>
+                        <div class="flex items-center justify-between">
+                            <button class="text-primary-pink font-medium hover:text-primary-purple transition-colors">Read More →</button>
+                            <div class="flex items-center text-gray-500 text-sm">
+                                <i class="fas fa-heart mr-1"></i>
+                                <span>18</span>
+                            </div>
+                        </div>
+                    </div>
+                </article>
+                
+                <!-- Blog Post 4: Growth -->
+                <article class="bg-white rounded-3xl shadow-lg overflow-hidden hover:shadow-xl transition-shadow" data-mock="true">
+                    <!-- Young girls learning and playing in educational setting -->
+                    <img src="https://images.unsplash.com/photo-1509062522246-3755977927d7?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&h=400" alt="Young students engaged in collaborative learning and problem-solving" class="w-full h-48 object-cover" />
+                    <div class="p-6">
+                        <div class="flex items-center mb-3">
+                            <span class="bg-primary-purple text-white px-3 py-1 rounded-full text-xs font-medium">Growth</span>
+                            <span class="text-gray-500 text-sm ml-3">6 min read</span>
+                        </div>
+                        <h3 class="font-nunito font-bold text-xl text-gray-800 mb-3">Setting Goals That Actually Work</h3>
+                        <p class="text-gray-600 mb-4">Discover how to set achievable goals that excite you and create a roadmap for success in school, hobbies, and personal growth!</p>
+                        <div class="flex items-center justify-between">
+                            <button class="text-primary-pink font-medium hover:text-primary-purple transition-colors">Read More →</button>
+                            <div class="flex items-center text-gray-500 text-sm">
+                                <i class="fas fa-heart mr-1"></i>
+                                <span>22</span>
+                            </div>
+                        </div>
+                    </div>
+                </article>
+                
+                <!-- Blog Post 5: Creativity -->
+                <article class="bg-white rounded-3xl shadow-lg overflow-hidden hover:shadow-xl transition-shadow" data-mock="true">
+                    <!-- Inspiring educational activities with hands-on learning -->
+                    <img src="https://pixabay.com/get/gc5bc3a94e6523c919ec3cb692739c2ae0f60af68cdc60f6ce264fe1f9ad15ba5ccfcdb6408c3421fef1a38d4b6df489a8579471e5f05921d3326c276791961f8_1280.jpg" alt="Interactive science and learning activities for young students" class="w-full h-48 object-cover" />
+                    <div class="p-6">
+                        <div class="flex items-center mb-3">
+                            <span class="bg-accent-gold text-white px-3 py-1 rounded-full text-xs font-medium">Creativity</span>
+                            <span class="text-gray-500 text-sm ml-3">5 min read</span>
+                        </div>
+                        <h3 class="font-nunito font-bold text-xl text-gray-800 mb-3">Science Experiments You Can Do at Home</h3>
+                        <p class="text-gray-600 mb-4">Turn your kitchen into a science lab with these safe, fun experiments that will amaze your family and spark your curiosity!</p>
+                        <div class="flex items-center justify-between">
+                            <button class="text-primary-pink font-medium hover:text-primary-purple transition-colors">Read More →</button>
+                            <div class="flex items-center text-gray-500 text-sm">
+                                <i class="fas fa-heart mr-1"></i>
+                                <span>35</span>
+                            </div>
+                        </div>
+                    </div>
+                </article>
+                
+                <!-- Blog Post 6: Friendship -->
+                <article class="bg-white rounded-3xl shadow-lg overflow-hidden hover:shadow-xl transition-shadow" data-mock="true">
+                    <!-- Young girls in various learning and play activities -->
+                    <img src="https://images.unsplash.com/photo-1544717301-9cdcb1f5940f?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&h=400" alt="Girls working together on a group project, showing teamwork and friendship" class="w-full h-48 object-cover" />
+                    <div class="p-6">
+                        <div class="flex items-center mb-3">
+                            <span class="bg-primary-pink text-white px-3 py-1 rounded-full text-xs font-medium">Friendship</span>
+                            <span class="text-gray-500 text-sm ml-3">4 min read</span>
+                        </div>
+                        <h3 class="font-nunito font-bold text-xl text-gray-800 mb-3">Handling Friend Drama Like a Pro</h3>
+                        <p class="text-gray-600 mb-4">Navigate tricky friendship situations with grace and confidence using these proven strategies for resolving conflicts peacefully.</p>
+                        <div class="flex items-center justify-between">
+                            <button class="text-primary-pink font-medium hover:text-primary-purple transition-colors">Read More →</button>
+                            <div class="flex items-center text-gray-500 text-sm">
+                                <i class="fas fa-heart mr-1"></i>
+                                <span>28</span>
+                            </div>
+                        </div>
+                    </div>
+                </article>
+                <!-- @END_MAP )) -->
+            </div>
+            
+            <div class="text-center mt-12">
+                <button class="bg-gradient-to-r from-primary-pink to-primary-purple text-white px-8 py-3 rounded-full font-semibold hover:shadow-lg transition-all">
+                    Load More Posts
+                </button>
+            </div>
+        </div>
+    </section>
+    <!-- @END_COMPONENT: BlogSection -->
+
+    <!-- Parent Guide Section -->
+    <!-- @COMPONENT: ParentGuideSection [safety info, benefits] -->
+    <section id="parents" class="py-20 bg-gradient-to-br from-pastel-rose to-pastel-blue">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="text-center mb-16">
+                <h2 class="font-nunito font-bold text-3xl md:text-5xl text-gray-800 mb-4">
+                    A Message for <span class="text-primary-purple">Parents</span>
+                </h2>
+                <p class="text-xl text-gray-600 max-w-3xl mx-auto">
+                    Learn how My Pocket Sister creates a safe, supportive environment for your daughter's growth and development.
+                </p>
+            </div>
+            
+            <div class="grid lg:grid-cols-2 gap-12 items-center">
+                <div>
+                    <!-- Family bonding moments showing trust and communication -->
+                    <img src="https://pixabay.com/get/gfafe4fb975a21d8a271b83bb888a7068a6115434f382ccec94b639f434837f557d9ba335eb61a4e6d43d51716bb3ff476f50d582ad30010469b24d6cab81e5a4_1280.jpg" alt="Happy family moment with parents and daughter sharing quality time together" class="rounded-3xl shadow-2xl w-full" />
+                </div>
+                
+                <div>
+                    <h3 class="font-nunito font-bold text-2xl md:text-3xl text-gray-800 mb-6">
+                        Safe, Smart, & Supportive
+                    </h3>
+                    
+                    <!-- Safety Features -->
+                    <div class="space-y-6">
+                        <div class="flex items-start">
+                            <div class="w-12 h-12 bg-accent-green rounded-xl flex items-center justify-center mr-4 flex-shrink-0">
+                                <i class="fas fa-shield-alt text-white text-xl"></i>
+                            </div>
+                            <div>
+                                <h4 class="font-bold text-lg text-gray-800 mb-2">Privacy Protected</h4>
+                                <p class="text-gray-600">All conversations are private and secure. We never store personal information or share data with third parties.</p>
+                            </div>
+                        </div>
+                        
+                        <div class="flex items-start">
+                            <div class="w-12 h-12 bg-primary-pink rounded-xl flex items-center justify-center mr-4 flex-shrink-0">
+                                <i class="fas fa-users text-white text-xl"></i>
+                            </div>
+                            <div>
+                                <h4 class="font-bold text-lg text-gray-800 mb-2">Age-Appropriate Content</h4>
+                                <p class="text-gray-600">All advice and content is specifically designed for girls aged 10-14, reviewed by child development experts.</p>
+                            </div>
+                        </div>
+                        
+                        <div class="flex items-start">
+                            <div class="w-12 h-12 bg-primary-purple rounded-xl flex items-center justify-center mr-4 flex-shrink-0">
+                                <i class="fas fa-eye text-white text-xl"></i>
+                            </div>
+                            <div>
+                                <h4 class="font-bold text-lg text-gray-800 mb-2">Parental Visibility</h4>
+                                <p class="text-gray-600">Optional parent dashboard allows you to see usage patterns and general topics discussed (not specific conversations).</p>
+                            </div>
+                        </div>
+                        
+                        <div class="flex items-start">
+                            <div class="w-12 h-12 bg-accent-gold rounded-xl flex items-center justify-center mr-4 flex-shrink-0">
+                                <i class="fas fa-graduation-cap text-white text-xl"></i>
+                            </div>
+                            <div>
+                                <h4 class="font-bold text-lg text-gray-800 mb-2">Educational Focus</h4>
+                                <p class="text-gray-600">Promotes positive values, emotional intelligence, and healthy decision-making skills for lifelong growth.</p>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="mt-8 flex flex-col sm:flex-row gap-4">
+                        <button class="bg-gradient-to-r from-primary-pink to-primary-purple text-white px-6 py-3 rounded-full font-semibold hover:shadow-lg transition-all">
+                            Learn More About Safety
+                        </button>
+                        <button class="border-2 border-primary-purple text-primary-purple px-6 py-3 rounded-full font-semibold hover:bg-primary-purple hover:text-white transition-all">
+                            Download Parent Guide
+                        </button>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Benefits Section -->
+            <div class="mt-20">
+                <h3 class="font-nunito font-bold text-2xl md:text-3xl text-gray-800 text-center mb-12">
+                    Benefits for Your Daughter
+                </h3>
+                
+                <div class="grid md:grid-cols-2 lg:grid-cols-4 gap-8">
+                    <div class="text-center">
+                        <div class="w-16 h-16 bg-gradient-to-r from-primary-pink to-primary-purple rounded-full flex items-center justify-center mx-auto mb-4">
+                            <i class="fas fa-heart text-white text-2xl"></i>
+                        </div>
+                        <h4 class="font-bold text-lg text-gray-800 mb-2">Emotional Support</h4>
+                        <p class="text-gray-600">24/7 access to encouragement and guidance during challenging moments.</p>
+                    </div>
+                    
+                    <div class="text-center">
+                        <div class="w-16 h-16 bg-gradient-to-r from-primary-purple to-accent-green rounded-full flex items-center justify-center mx-auto mb-4">
+                            <i class="fas fa-star text-white text-2xl"></i>
+                        </div>
+                        <h4 class="font-bold text-lg text-gray-800 mb-2">Confidence Building</h4>
+                        <p class="text-gray-600">Daily affirmations and achievements help build lasting self-esteem.</p>
+                    </div>
+                    
+                    <div class="text-center">
+                        <div class="w-16 h-16 bg-gradient-to-r from-accent-green to-accent-gold rounded-full flex items-center justify-center mx-auto mb-4">
+                            <i class="fas fa-lightbulb text-white text-2xl"></i>
+                        </div>
+                        <h4 class="font-bold text-lg text-gray-800 mb-2">Problem Solving</h4>
+                        <p class="text-gray-600">Learn to think through challenges independently with guided support.</p>
+                    </div>
+                    
+                    <div class="text-center">
+                        <div class="w-16 h-16 bg-gradient-to-r from-accent-gold to-primary-pink rounded-full flex items-center justify-center mx-auto mb-4">
+                            <i class="fas fa-seedling text-white text-2xl"></i>
+                        </div>
+                        <h4 class="font-bold text-lg text-gray-800 mb-2">Personal Growth</h4>
+                        <p class="text-gray-600">Develop healthy habits and positive mindsets for lifelong success.</p>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Family Bonding Images -->
+            <div class="mt-16 grid md:grid-cols-2 gap-8">
+                <!-- Family bonding moments showing communication -->
+                <div class="relative overflow-hidden rounded-2xl shadow-lg">
+                    <img src="https://images.unsplash.com/photo-1543269664-56d93c1b41a6?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&h=400" alt="Mother and daughter having a meaningful conversation and bonding" class="w-full h-64 object-cover" />
+                    <div class="absolute inset-0 bg-gradient-to-t from-primary-purple via-transparent to-transparent opacity-60"></div>
+                    <div class="absolute bottom-4 left-4 text-white">
+                        <h4 class="font-bold text-lg">Open Communication</h4>
+                        <p class="text-sm">Building trust and understanding</p>
+                    </div>
+                </div>
+                
+                <!-- Family bonding moments showing support -->
+                <div class="relative overflow-hidden rounded-2xl shadow-lg">
+                    <img src="https://pixabay.com/get/gda69b92c51826316282b0a809cb6bb5172b9263beeab3a1a7b86043cb3c703faf2b70f913975dd324f208679f5aa371f6685f1e38c6a43964cdf1ce9a79e226f_1280.jpg" alt="Supportive family environment with parents and children together" class="w-full h-64 object-cover" />
+                    <div class="absolute inset-0 bg-gradient-to-t from-primary-pink via-transparent to-transparent opacity-60"></div>
+                    <div class="absolute bottom-4 left-4 text-white">
+                        <h4 class="font-bold text-lg">Family Support</h4>
+                        <p class="text-sm">Growing together as a team</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+    <!-- @END_COMPONENT: ParentGuideSection -->
+
+    <!-- Contact Section -->
+    <!-- @COMPONENT: ContactSection [inquiry form, support info] -->
+    <section class="py-20 bg-white">
+        <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="text-center mb-16">
+                <h2 class="font-nunito font-bold text-3xl md:text-5xl text-gray-800 mb-4">
+                    Get in <span class="text-primary-pink">Touch</span>
+                </h2>
+                <p class="text-xl text-gray-600 max-w-2xl mx-auto">
+                    Have questions? We're here to help! Reach out to learn more about My Pocket Sister or get support.
+                </p>
+            </div>
+            
+            <div class="grid lg:grid-cols-2 gap-12">
+                <!-- Contact Form -->
+                <div class="bg-gradient-to-br from-pastel-lavender to-white p-8 rounded-3xl shadow-lg">
+                    <h3 class="font-nunito font-bold text-2xl text-gray-800 mb-6">Send us a message</h3>
+                    <form class="space-y-6" data-implementation="Handle form submission with validation">
+                        <div>
+                            <label for="name" class="block text-sm font-medium text-gray-700 mb-2">Your Name</label>
+                            <input type="text" id="name" name="name" class="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-primary-pink focus:border-transparent transition-all" placeholder="Enter your full name" data-mock="true" />
+                        </div>
+                        
+                        <div>
+                            <label for="email" class="block text-sm font-medium text-gray-700 mb-2">Email Address</label>
+                            <input type="email" id="email" name="email" class="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-primary-pink focus:border-transparent transition-all" placeholder="your.email@example.com" data-mock="true" />
+                        </div>
+                        
+                        <div>
+                            <label for="subject" class="block text-sm font-medium text-gray-700 mb-2">Subject</label>
+                            <select id="subject" name="subject" class="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-primary-pink focus:border-transparent transition-all" data-mock="true">
+                                <option>General Inquiry</option>
+                                <option>Parent Questions</option>
+                                <option>Technical Support</option>
+                                <option>Partnership</option>
+                                <option>Media Inquiry</option>
+                            </select>
+                        </div>
+                        
+                        <div>
+                            <label for="message" class="block text-sm font-medium text-gray-700 mb-2">Message</label>
+                            <textarea id="message" name="message" rows="4" class="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-primary-pink focus:border-transparent transition-all" placeholder="Tell us how we can help you..." data-mock="true"></textarea>
+                        </div>
+                        
+                        <button type="submit" class="w-full bg-gradient-to-r from-primary-pink to-primary-purple text-white py-3 rounded-xl font-semibold hover:shadow-lg transition-all" data-event="click:handleFormSubmit">
+                            <i class="fas fa-paper-plane mr-2"></i>Send Message
+                        </button>
+                    </form>
+                </div>
+                
+                <!-- Contact Info -->
+                <div class="space-y-8">
+                    <div>
+                        <h3 class="font-nunito font-bold text-2xl text-gray-800 mb-6">Other ways to reach us</h3>
+                        
+                        <div class="space-y-6">
+                            <div class="flex items-center">
+                                <div class="w-12 h-12 bg-primary-pink rounded-xl flex items-center justify-center mr-4">
+                                    <i class="fas fa-envelope text-white"></i>
+                                </div>
+                                <div>
+                                    <h4 class="font-semibold text-gray-800">Email Support</h4>
+                                    <p class="text-gray-600">support@mypocketsister.com</p>
+                                </div>
+                            </div>
+                            
+                            <div class="flex items-center">
+                                <div class="w-12 h-12 bg-primary-purple rounded-xl flex items-center justify-center mr-4">
+                                    <i class="fas fa-comments text-white"></i>
+                                </div>
+                                <div>
+                                    <h4 class="font-semibold text-gray-800">Live Chat</h4>
+                                    <p class="text-gray-600">Available 24/7 for parents</p>
+                                </div>
+                            </div>
+                            
+                            <div class="flex items-center">
+                                <div class="w-12 h-12 bg-accent-green rounded-xl flex items-center justify-center mr-4">
+                                    <i class="fas fa-book text-white"></i>
+                                </div>
+                                <div>
+                                    <h4 class="font-semibold text-gray-800">Help Center</h4>
+                                    <p class="text-gray-600">Find answers to common questions</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- FAQ Preview -->
+                    <div class="bg-pastel-blue rounded-2xl p-6">
+                        <h4 class="font-nunito font-bold text-lg text-gray-800 mb-4">Quick Questions?</h4>
+                        <div class="space-y-3">
+                            <div class="text-sm">
+                                <p class="font-medium text-gray-700">Is My Pocket Sister free to try?</p>
+                                <p class="text-gray-600">Yes! We offer a 7-day free trial.</p>
+                            </div>
+                            <div class="text-sm">
+                                <p class="font-medium text-gray-700">What age range is this for?</p>
+                                <p class="text-gray-600">Designed specifically for girls aged 10-14.</p>
+                            </div>
+                            <div class="text-sm">
+                                <p class="font-medium text-gray-700">Is it safe for my daughter?</p>
+                                <p class="text-gray-600">Absolutely! Privacy and safety are our top priorities.</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+    <!-- @END_COMPONENT: ContactSection -->
+
+    <!-- Footer -->
+    <!-- @COMPONENT: Footer [links, social, legal] -->
+    <footer class="bg-gray-900 text-white py-16">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="grid md:grid-cols-4 gap-8">
+                <!-- Brand -->
+                <div class="md:col-span-1">
+                    <div class="flex items-center mb-4">
+                        <i class="fas fa-heart text-primary-pink text-2xl mr-2"></i>
+                        <span class="font-nunito font-bold text-xl">My Pocket Sister</span>
+                    </div>
+                    <p class="text-gray-400 mb-6">Empowering young girls with AI-powered support, inspiration, and guidance for confident growth.</p>
+                    <div class="flex space-x-4">
+                        <a href="#" class="w-10 h-10 bg-primary-pink rounded-full flex items-center justify-center hover:bg-opacity-80 transition-colors" aria-label="Facebook">
+                            <i class="fab fa-facebook-f"></i>
+                        </a>
+                        <a href="#" class="w-10 h-10 bg-primary-pink rounded-full flex items-center justify-center hover:bg-opacity-80 transition-colors" aria-label="Instagram">
+                            <i class="fab fa-instagram"></i>
+                        </a>
+                        <a href="#" class="w-10 h-10 bg-primary-pink rounded-full flex items-center justify-center hover:bg-opacity-80 transition-colors" aria-label="Twitter">
+                            <i class="fab fa-twitter"></i>
+                        </a>
+                        <a href="#" class="w-10 h-10 bg-primary-pink rounded-full flex items-center justify-center hover:bg-opacity-80 transition-colors" aria-label="YouTube">
+                            <i class="fab fa-youtube"></i>
+                        </a>
+                    </div>
+                </div>
+                
+                <!-- Product Links -->
+                <div>
+                    <h4 class="font-nunito font-bold text-lg mb-4">Product</h4>
+                    <ul class="space-y-2">
+                        <li><a href="#features" class="text-gray-400 hover:text-primary-pink transition-colors">Features</a></li>
+                        <li><a href="#" class="text-gray-400 hover:text-primary-pink transition-colors">Pricing</a></li>
+                        <li><a href="#" class="text-gray-400 hover:text-primary-pink transition-colors">Download App</a></li>
+                        <li><a href="#" class="text-gray-400 hover:text-primary-pink transition-colors">System Requirements</a></li>
+                    </ul>
+                </div>
+                
+                <!-- Support Links -->
+                <div>
+                    <h4 class="font-nunito font-bold text-lg mb-4">Support</h4>
+                    <ul class="space-y-2">
+                        <li><a href="#" class="text-gray-400 hover:text-primary-pink transition-colors">Help Center</a></li>
+                        <li><a href="#parents" class="text-gray-400 hover:text-primary-pink transition-colors">Parent Guide</a></li>
+                        <li><a href="#" class="text-gray-400 hover:text-primary-pink transition-colors">Safety</a></li>
+                        <li><a href="#" class="text-gray-400 hover:text-primary-pink transition-colors">Contact Us</a></li>
+                    </ul>
+                </div>
+                
+                <!-- Company Links -->
+                <div>
+                    <h4 class="font-nunito font-bold text-lg mb-4">Company</h4>
+                    <ul class="space-y-2">
+                        <li><a href="#" class="text-gray-400 hover:text-primary-pink transition-colors">About Us</a></li>
+                        <li><a href="#blog" class="text-gray-400 hover:text-primary-pink transition-colors">Blog</a></li>
+                        <li><a href="#" class="text-gray-400 hover:text-primary-pink transition-colors">Careers</a></li>
+                        <li><a href="#" class="text-gray-400 hover:text-primary-pink transition-colors">Press</a></li>
+                    </ul>
+                </div>
+            </div>
+            
+            <div class="border-t border-gray-800 mt-12 pt-8 flex flex-col md:flex-row justify-between items-center">
+                <p class="text-gray-400 text-sm">© 2024 My Pocket Sister. All rights reserved.</p>
+                <div class="flex space-x-6 mt-4 md:mt-0">
+                    <a href="#" class="text-gray-400 hover:text-primary-pink text-sm transition-colors">Privacy Policy</a>
+                    <a href="#" class="text-gray-400 hover:text-primary-pink text-sm transition-colors">Terms of Service</a>
+                    <a href="#" class="text-gray-400 hover:text-primary-pink text-sm transition-colors">Cookie Policy</a>
+                </div>
+            </div>
+        </div>
+    </footer>
+    <!-- @END_COMPONENT: Footer -->
+
+    <script>
+        // TODO: Implement business logic, API calls, and state management
+        
+        (function() {
+            // Mobile menu toggle functionality
+            const mobileMenuButton = document.querySelector('[data-event="click:toggleMobileMenu"]');
+            const mobileMenu = document.getElementById('mobile-menu');
+            
+            if (mobileMenuButton && mobileMenu) {
+                mobileMenuButton.addEventListener('click', function() {
+                    mobileMenu.classList.toggle('hidden');
+                });
+            }
+            
+            // Smooth scrolling for navigation links
+            document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+                anchor.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    const target = document.querySelector(this.getAttribute('href'));
+                    if (target) {
+                        target.scrollIntoView({
+                            behavior: 'smooth',
+                            block: 'start'
+                        });
+                    }
+                });
+            });
+            
+            // Form submission handling
+            const contactForm = document.querySelector('form[data-implementation*="Handle form submission"]');
+            if (contactForm) {
+                contactForm.addEventListener('submit', function(e) {
+                    e.preventDefault();
+                    // TODO: Implement actual form submission
+                    alert('Thank you for your message! We\'ll get back to you soon.');
+                });
+            }
+        })();
+    </script>
+</body>
+</html>

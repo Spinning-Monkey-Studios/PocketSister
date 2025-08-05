@@ -4,6 +4,8 @@
 <dict>
     <key>CFBundleDevelopmentRegion</key>
     <string>$(DEVELOPMENT_LANGUAGE)</string>
+    <key>CFBundleDisplayName</key>
+    <string>My Pocket Sister</string>
     <key>CFBundleExecutable</key>
     <string>$(EXECUTABLE_NAME)</string>
     <key>CFBundleIdentifier</key>
@@ -39,8 +41,6 @@
             </array>
         </dict>
     </dict>
-    <key>UIApplicationSupportsIndirectInputEvents</key>
-    <true/>
     <key>UILaunchStoryboardName</key>
     <string>LaunchScreen</string>
     <key>UIMainStoryboardFile</key>
@@ -62,90 +62,14 @@
         <string>UIInterfaceOrientationLandscapeLeft</string>
         <string>UIInterfaceOrientationLandscapeRight</string>
     </array>
-    
-    <!-- Privacy Usage Descriptions -->
-    <key>NSCameraUsageDescription</key>
-    <string>My Pocket Sister needs camera access to allow avatar customization and photo sharing with your AI companion.</string>
-    <key>NSMicrophoneUsageDescription</key>
-    <string>My Pocket Sister needs microphone access for voice conversations with your AI companion.</string>
     <key>NSLocationWhenInUseUsageDescription</key>
-    <string>My Pocket Sister may use location to provide location-specific content and activities.</string>
-    <key>NSFaceIDUsageDescription</key>
-    <string>My Pocket Sister uses Face ID for secure and convenient app access.</string>
-    
-    <!-- App Transport Security -->
+    <string>My Pocket Sister needs location access to provide safety features and help parents keep track of their child's whereabouts for emergency situations.</string>
+    <key>NSLocationAlwaysAndWhenInUseUsageDescription</key>
+    <string>My Pocket Sister needs location access to provide safety features and help parents keep track of their child's whereabouts for emergency situations.</string>
     <key>NSAppTransportSecurity</key>
     <dict>
         <key>NSAllowsArbitraryLoads</key>
-        <false/>
-        <key>NSExceptionDomains</key>
-        <dict>
-            <key>my-pocket-sister.replit.app</key>
-            <dict>
-                <key>NSExceptionAllowsInsecureHTTPLoads</key>
-                <false/>
-                <key>NSExceptionMinimumTLSVersion</key>
-                <string>TLSv1.2</string>
-            </dict>
-            <key>mypocketsister.com</key>
-            <dict>
-                <key>NSExceptionAllowsInsecureHTTPLoads</key>
-                <false/>
-                <key>NSExceptionMinimumTLSVersion</key>
-                <string>TLSv1.2</string>
-            </dict>
-        </dict>
+        <true/>
     </dict>
-    
-    <!-- URL Schemes for Deep Linking -->
-    <key>CFBundleURLTypes</key>
-    <array>
-        <dict>
-            <key>CFBundleURLName</key>
-            <string>com.mypocketsister.app</string>
-            <key>CFBundleURLSchemes</key>
-            <array>
-                <string>mypocketsister</string>
-                <string>https</string>
-            </array>
-        </dict>
-    </array>
-    
-    <!-- Supported Document Types -->
-    <key>CFBundleDocumentTypes</key>
-    <array>
-        <dict>
-            <key>CFBundleTypeName</key>
-            <string>My Pocket Sister Link</string>
-            <key>CFBundleTypeRole</key>
-            <string>Viewer</string>
-            <key>LSHandlerRank</key>
-            <string>Owner</string>
-            <key>LSItemContentTypes</key>
-            <array>
-                <string>public.url</string>
-            </array>
-        </dict>
-    </array>
-    
-    <!-- Device Capabilities -->
-    <key>UIRequiredDeviceCapabilities</key>
-    <array>
-        <string>front-facing-camera</string>
-        <string>microphone</string>
-    </array>
-    
-    <!-- Background Modes -->
-    <key>UIBackgroundModes</key>
-    <array>
-        <string>background-fetch</string>
-        <string>remote-notification</string>
-    </array>
-    
-    <!-- Status Bar -->
-    <key>UIStatusBarStyle</key>
-    <string>UIStatusBarStyleDefault</string>
-    <key>UIViewControllerBasedStatusBarAppearance</key>
-    <false/>
 </dict>
 </plist>

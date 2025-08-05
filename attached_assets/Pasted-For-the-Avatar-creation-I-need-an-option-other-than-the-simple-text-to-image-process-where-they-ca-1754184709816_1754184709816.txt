@@ -1,0 +1,62 @@
+For the Avatar creation, I need an option other than the simple text to image process, where they can do the job in an Avatar Creation Game
+Goal: Build a child-friendly avatar customization mini-game . 
+
+Art Style: Simple, cartoony, and friendly—large buttons, bright colors, clear icons, no hyper-realistic models.
+
+Features:
+
+Start screen with "Create Your Big Sister" and "Randomize" buttons.
+
+Modular avatar system with swappable parts:
+
+Base body: 3–5 body types, 6–8 skin tones.
+
+Hair: 10 styles, multiple colors.
+
+Face: Eye shapes/colors, mouth expressions, freckles, glasses.
+
+Clothing: Tops/bottoms or full outfits, shoes, color swatches.
+
+Accessories: Hats, props (book, backpack, headphones), stickers.
+
+Personality Card: Adds greeting text and idle animation.
+
+Background scene: Bedroom, park, beach, study space.
+
+Avatar name input field.
+
+Save button to store avatar data locally
+
+Option to “Take a Snapshot” (download PNG of final avatar).
+
+Randomize button to shuffle selections.
+
+Option to use the avatar as the base image for an AI-generation
+
+Do a basic celebratory animation like a confetti burst on save.
+
+Unlockable Items: (Stub this for now – just create a placeholder system that can later allow locked items to be unlocked after milestones).
+
+Architecture:
+
+Separate avatar assets by category (e.g., /assets/hair, /assets/clothes).
+
+Data-driven structure using JSON for customization options.
+
+Use a clean component-based design.
+
+Future-ready: Keep code structured so that it can later be merged into a larger React Native or web-based app.
+
+Clean, well-commented code.
+
+Simple placeholder art (flat shapes/colors) where final illustrations will go later.(I would like an easy way for an admin to provided the art for this)
+
+README file explaining how to run and expand the avatar creator.
+
+Stretch Goal (if time allows):
+
+Add light idle animations for the avatar (blinking, waving).
+
+Add collectible card preview showing the avatar's name and personality choice.
+
+Important: Keep everything safe and appropriate for children. Make the experience friendly, simple, and fun, similar to a mini-game on a kids’ website.

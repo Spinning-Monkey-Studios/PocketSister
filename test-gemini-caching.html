@@ -1,0 +1,302 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Google Gemini Context Caching Test</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; }
+        .test-section { border: 1px solid #ccc; padding: 15px; margin: 10px 0; }
+        .result { background: #f5f5f5; padding: 10px; margin: 10px 0; }
+        button { padding: 10px 20px; margin: 5px; cursor: pointer; }
+        .success { color: green; }
+        .error { color: red; }
+        .warning { color: orange; }
+        pre { background: #f0f0f0; padding: 10px; overflow-x: auto; }
+        .step { border-left: 4px solid #007bff; padding-left: 15px; margin: 10px 0; }
+        .step.success { border-left-color: #28a745; }
+        .step.failed { border-left-color: #dc3545; }
+        .highlight { background: #fff3cd; padding: 2px 4px; border-radius: 3px; }
+    </style>
+</head>
+<body>
+    <h1>🧠 Google Gemini Context Caching Implementation Test</h1>
+    
+    <div style="background: #e7f3ff; padding: 15px; margin: 15px 0; border-radius: 8px;">
+        <h3>📋 Test Overview</h3>
+        <p><strong>Purpose:</strong> Verify we're using Google's official <code>cachedContents.create</code> endpoint properly</p>
+        <p><strong>Expected Behavior:</strong></p>
+        <ul>
+            <li>✅ Upload large context <strong>once</strong> via <code>cachedContents.create</code></li>
+            <li>✅ Get back a <code>cacheId</code> from Google's servers</li>
+            <li>✅ Reference cached content via <code>cacheId</code> in subsequent calls</li>
+            <li>✅ Context lives in Google's cache with configurable TTL (default 60 minutes)</li>
+            <li>✅ Massive token savings by not re-sending large context blobs</li>
+        </ul>
+    </div>
+    
+    <div class="test-section">
+        <h2>🚀 Run Complete Caching Test</h2>
+        <p>Tests the full Google Gemini caching workflow including content upload, cache referencing, and TTL management.</p>
+        <button onclick="runCachingTest()">Run Full Test Suite</button>
+        <div id="caching-test-result" class="result"></div>
+    </div>
+    
+    <div class="test-section">
+        <h2>📊 Check Cache Statistics</h2>
+        <p>View current cache status and Google's cached content entries.</p>
+        <button onclick="checkCacheStats()">Get Cache Stats</button>
+        <div id="cache-stats-result" class="result"></div>
+    </div>
+    
+    <div class="test-section">
+        <h2>🧹 Cache Management</h2>
+        <p>Clean up expired cache entries from Google's servers.</p>
+        <button onclick="cleanupCache()">Cleanup Expired Caches</button>
+        <div id="cleanup-result" class="result"></div>
+    </div>
+
+    <div class="test-section">
+        <h2>📏 Context Window & API Tier Test</h2>
+        <p>Test context window management and detect API tier (Base: 1M tokens, Pro: 2M tokens).</p>
+        <button onclick="testContextWindow()">Test Context Window Management</button>
+        <div id="context-window-result" class="result"></div>
+    </div>
+
+    <script>
+        async function runCachingTest() {
+            const resultDiv = document.getElementById('caching-test-result');
+            resultDiv.innerHTML = '<p>🔄 Running Google Gemini Context Caching Test...</p>';
+            
+            try {
+                const response = await fetch('/api/gemini-cache/test', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' }
+                });
+                
+                const result = await response.json();
+                
+                if (result.success) {
+                    let stepsHtml = '';
+                    result.testResults.steps.forEach((step, index) => {
+                        const stepClass = step.status === 'success' ? 'success' : 'failed';
+                        stepsHtml += `
+                            <div class="step ${stepClass}">
+                                <h4>${step.step}</h4>
+                                <p><strong>Status:</strong> <span class="${step.status}">${step.status.toUpperCase()}</span></p>
+                                <p><strong>Duration:</strong> ${step.duration}ms</p>
+                                ${step.details ? `<details><summary>Details</summary><pre>${JSON.stringify(step.details, null, 2)}</pre></details>` : ''}
+                            </div>
+                        `;
+                    });
+
+                    resultDiv.innerHTML = `
+                        <h3>✅ Google Gemini Context Caching Test Results</h3>
+                        
+                        <div style="background: #d4edda; padding: 15px; margin: 10px 0; border-radius: 8px;">
+                            <h4>🎯 Test Summary</h4>
+                            <p><strong>Implementation:</strong> <span class="highlight">${result.summary.cacheImplementation}</span></p>
+                            <p><strong>Token Optimization:</strong> <span class="highlight">${result.summary.tokenOptimization}</span></p>
+                            <p><strong>TTL Management:</strong> <span class="highlight">${result.summary.ttlManagement}</span></p>
+                            <p><strong>Steps Completed:</strong> ${result.summary.successfulSteps}/${result.summary.totalSteps}</p>
+                        </div>
+                        
+                        ${stepsHtml}
+                        
+                        <div style="background: #cff4fc; padding: 15px; margin: 15px 0; border-radius: 8px;">
+                            <h4>🔍 What This Test Proves</h4>
+                            <p>✅ <strong>Proper Google API Usage:</strong> We upload content via <code>cachedContents.create</code></p>
+                            <p>✅ <strong>Cache ID Reference:</strong> Subsequent calls use <code>cacheId</code> instead of re-sending content</p>
+                            <p>✅ <strong>Token Efficiency:</strong> Large context uploaded once, referenced multiple times</p>
+                            <p>✅ <strong>TTL Management:</strong> Content expires after specified time (30 minutes in test)</p>
+                            <p>✅ <strong>Google Server Storage:</strong> Content lives on Google's servers, not our memory</p>
+                        </div>
+                        
+                        <details>
+                            <summary>Full Test Results JSON</summary>
+                            <pre>${JSON.stringify(result, null, 2)}</pre>
+                        </details>
+                    `;
+                } else {
+                    resultDiv.innerHTML = `
+                        <h3>❌ Test Failed</h3>
+                        <p class="error">Error: ${result.error}</p>
+                        ${result.testResults ? `
+                            <h4>Partial Results:</h4>
+                            <pre>${JSON.stringify(result.testResults, null, 2)}</pre>
+                        ` : ''}
+                    `;
+                }
+                
+            } catch (error) {
+                resultDiv.innerHTML = `<p class="error">❌ Test execution failed: ${error.message}</p>`;
+            }
+        }
+
+        async function checkCacheStats() {
+            const resultDiv = document.getElementById('cache-stats-result');
+            resultDiv.innerHTML = '<p>📊 Fetching cache statistics...</p>';
+            
+            try {
+                const response = await fetch('/api/gemini-cache/stats');
+                const result = await response.json();
+                
+                if (result.success) {
+                    resultDiv.innerHTML = `
+                        <h3>📊 Cache Statistics</h3>
+                        
+                        <div class="step">
+                            <h4>🏠 Local Cache Tracking</h4>
+                            <p><strong>Active Caches:</strong> ${result.localStats.totalActiveCaches}</p>
+                            <p><strong>Caches by Child:</strong></p>
+                            <ul>
+                                ${Object.entries(result.localStats.cachesByChild).map(([childId, count]) => 
+                                    `<li>${childId}: ${count} caches</li>`
+                                ).join('')}
+                            </ul>
+                            ${result.localStats.oldestCache ? `<p><strong>Oldest Cache:</strong> ${new Date(result.localStats.oldestCache).toLocaleString()}</p>` : ''}
+                            ${result.localStats.newestCache ? `<p><strong>Newest Cache:</strong> ${new Date(result.localStats.newestCache).toLocaleString()}</p>` : ''}
+                        </div>
+                        
+                        <div class="step">
+                            <h4>☁️ Google Server Cache Status</h4>
+                            <p><strong>Total Cached Contents on Google:</strong> ${result.googleCacheStats.totalCachedContents}</p>
+                            ${result.googleCacheStats.contents.length > 0 ? `
+                                <details>
+                                    <summary>Cached Content Details</summary>
+                                    <pre>${JSON.stringify(result.googleCacheStats.contents, null, 2)}</pre>
+                                </details>
+                            ` : '<p><em>No cached contents found on Google servers</em></p>'}
+                        </div>
+                        
+                        <details>
+                            <summary>Raw Statistics Data</summary>
+                            <pre>${JSON.stringify(result, null, 2)}</pre>
+                        </details>
+                    `;
+                } else {
+                    resultDiv.innerHTML = `<p class="error">❌ Failed to get stats: ${result.error}</p>`;
+                }
+                
+            } catch (error) {
+                resultDiv.innerHTML = `<p class="error">❌ Stats request failed: ${error.message}</p>`;
+            }
+        }
+
+        async function cleanupCache() {
+            const resultDiv = document.getElementById('cleanup-result');
+            resultDiv.innerHTML = '<p>🧹 Cleaning up expired caches...</p>';
+            
+            try {
+                const response = await fetch('/api/gemini-cache/cleanup', {
+                    method: 'POST'
+                });
+                
+                const result = await response.json();
+                
+                if (result.success) {
+                    resultDiv.innerHTML = `
+                        <h3>🧹 Cache Cleanup Complete</h3>
+                        <p class="success">${result.message}</p>
+                        
+                        <div class="step">
+                            <h4>📊 Post-Cleanup Statistics</h4>
+                            <p><strong>Active Caches:</strong> ${result.stats.totalActiveCaches}</p>
+                            <p><strong>Caches by Child:</strong></p>
+                            <ul>
+                                ${Object.entries(result.stats.cachesByChild).map(([childId, count]) => 
+                                    `<li>${childId}: ${count} caches</li>`
+                                ).join('')}
+                            </ul>
+                        </div>
+                        
+                        <details>
+                            <summary>Cleanup Results</summary>
+                            <pre>${JSON.stringify(result, null, 2)}</pre>
+                        </details>
+                    `;
+                } else {
+                    resultDiv.innerHTML = `<p class="error">❌ Cleanup failed: ${result.error}</p>`;
+                }
+                
+            } catch (error) {
+                resultDiv.innerHTML = `<p class="error">❌ Cleanup request failed: ${error.message}</p>`;
+            }
+        }
+
+        async function testContextWindow() {
+            const resultDiv = document.getElementById('context-window-result');
+            resultDiv.innerHTML = '<p>📏 Testing context window management and API tier detection...</p>';
+            
+            try {
+                const response = await fetch('/api/gemini-cache/context-window-test');
+                const result = await response.json();
+                
+                if (result.success) {
+                    let stepsHtml = '';
+                    result.testResults.steps.forEach((step, index) => {
+                        const stepClass = step.status === 'success' ? 'success' : 'failed';
+                        stepsHtml += `
+                            <div class="step ${stepClass}">
+                                <h4>${step.step}</h4>
+                                <p><strong>Status:</strong> <span class="${step.status}">${step.status.toUpperCase()}</span></p>
+                                <p><strong>Duration:</strong> ${step.duration}ms</p>
+                                ${step.details ? `<details><summary>Details</summary><pre>${JSON.stringify(step.details, null, 2)}</pre></details>` : ''}
+                            </div>
+                        `;
+                    });
+
+                    resultDiv.innerHTML = `
+                        <h3>📏 Context Window Management Test Results</h3>
+                        
+                        <div style="background: #d4edda; padding: 15px; margin: 10px 0; border-radius: 8px;">
+                            <h4>🎯 Key Findings</h4>
+                            ${result.summary.keyFindings.map(finding => `<p>• <span class="highlight">${finding}</span></p>`).join('')}
+                        </div>
+                        
+                        <div style="background: #cff4fc; padding: 15px; margin: 15px 0; border-radius: 8px;">
+                            <h4>📊 Summary</h4>
+                            <p><strong>API Tier:</strong> <span class="highlight">${result.summary.apiTier.toUpperCase()}</span></p>
+                            <p><strong>Max Context Window:</strong> <span class="highlight">${result.summary.maxContextWindow.toLocaleString()} tokens</span></p>
+                            <p><strong>Payload Valid:</strong> <span class="highlight">${result.summary.payloadValid ? 'Yes' : 'No'}</span></p>
+                            <p><strong>Context Utilization:</strong> <span class="highlight">${result.summary.contextUtilization}</span></p>
+                            <p><strong>Recommended Model:</strong> <span class="highlight">${result.summary.recommendedModel}</span></p>
+                        </div>
+                        
+                        ${stepsHtml}
+                        
+                        <div style="background: #fff3cd; padding: 15px; margin: 15px 0; border-radius: 8px;">
+                            <h4>🔍 What This Shows</h4>
+                            <p>✅ <strong>API Tier Detection:</strong> Automatically detects if you have Base (1M) or Pro (2M) token access</p>
+                            <p>✅ <strong>Context Window Validation:</strong> Checks if payloads fit within model limits before sending</p>
+                            <p>✅ <strong>Token Breakdown:</strong> Shows how context is distributed across components</p>
+                            <p>✅ <strong>Model Recommendations:</strong> Suggests optimal model based on context size</p>
+                            <p>✅ <strong>Utilization Monitoring:</strong> Tracks context window usage for optimization</p>
+                        </div>
+                        
+                        <details>
+                            <summary>Full Context Window Test Results</summary>
+                            <pre>${JSON.stringify(result, null, 2)}</pre>
+                        </details>
+                    `;
+                } else {
+                    resultDiv.innerHTML = `
+                        <h3>❌ Context Window Test Failed</h3>
+                        <p class="error">Error: ${result.error}</p>
+                        ${result.testResults ? `
+                            <h4>Partial Results:</h4>
+                            <pre>${JSON.stringify(result.testResults, null, 2)}</pre>
+                        ` : ''}
+                    `;
+                }
+                
+            } catch (error) {
+                resultDiv.innerHTML = `<p class="error">❌ Context window test failed: ${error.message}</p>`;
+            }
+        }
+
+        // Auto-run stats check on page load
+        window.addEventListener('load', () => {
+            setTimeout(checkCacheStats, 1000);
+        });
+    </script>
+</body>
+</html>

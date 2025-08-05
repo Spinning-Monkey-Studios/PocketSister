@@ -1,0 +1,408 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Background Music Admin Panel - My Pocket Sister</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            margin: 0;
+            padding: 20px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+            overflow: hidden;
+        }
+
+        .header {
+            background: linear-gradient(45deg, #9b59b6, #3498db);
+            color: white;
+            padding: 30px;
+            text-align: center;
+        }
+
+        .header h1 {
+            margin: 0;
+            font-size: 2.5em;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+        }
+
+        .admin-section {
+            padding: 30px;
+            border-bottom: 1px solid #eee;
+        }
+
+        .admin-section h2 {
+            color: #333;
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        button {
+            background: linear-gradient(45deg, #9b59b6, #3498db);
+            color: white;
+            border: none;
+            padding: 12px 25px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 16px;
+            transition: all 0.3s ease;
+            margin-right: 10px;
+            margin-bottom: 10px;
+        }
+
+        button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+        }
+
+        .result {
+            margin-top: 20px;
+            padding: 15px;
+            border-radius: 8px;
+            white-space: pre-wrap;
+            font-family: monospace;
+            font-size: 14px;
+            max-height: 400px;
+            overflow-y: auto;
+        }
+
+        .result.success {
+            background: #d4edda;
+            border: 1px solid #c3e6cb;
+            color: #155724;
+        }
+
+        .result.error {
+            background: #f8d7da;
+            border: 1px solid #f5c6cb;
+            color: #721c24;
+        }
+
+        .result.info {
+            background: #d1ecf1;
+            border: 1px solid #bee5eb;
+            color: #0c5460;
+        }
+
+        .category-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin: 20px 0;
+        }
+
+        .category-card {
+            background: #f8f9fa;
+            padding: 20px;
+            border-radius: 10px;
+            border-left: 4px solid #9b59b6;
+        }
+
+        .category-card h4 {
+            margin: 0 0 10px 0;
+            color: #333;
+        }
+
+        .track-count {
+            font-size: 1.5em;
+            font-weight: bold;
+            color: #3498db;
+        }
+
+        .file-upload {
+            margin: 20px 0;
+            padding: 20px;
+            border: 2px dashed #ddd;
+            border-radius: 8px;
+            text-align: center;
+            background: #f9f9f9;
+        }
+
+        .secret-input {
+            background: #fff3cd;
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            border: 1px solid #ffeaa7;
+        }
+
+        .secret-input input {
+            width: 100%;
+            max-width: 300px;
+            padding: 10px;
+            border: 2px solid #ddd;
+            border-radius: 6px;
+            font-size: 14px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🎵 Background Music Admin Panel</h1>
+            <p>Manage MP3 files and categories for avatar creation game</p>
+        </div>
+
+        <div class="secret-input">
+            <label for="adminSecret">Admin Secret Key:</label>
+            <input type="password" id="adminSecret" placeholder="Enter admin secret key" />
+        </div>
+
+        <div class="admin-section">
+            <h2>📊 Music Library Statistics</h2>
+            <p>View comprehensive statistics about the background music library.</p>
+            <button onclick="getMusicStats()">Get Music Statistics</button>
+            <div id="stats-result" class="result"></div>
+        </div>
+
+        <div class="admin-section">
+            <h2>🎵 Music Library Content</h2>
+            <p>View all available music tracks organized by category.</p>
+            <button onclick="getMusicLibrary()">View Music Library</button>
+            <div id="library-result" class="result"></div>
+        </div>
+
+        <div class="admin-section">
+            <h2>🔄 Rescan Music Library</h2>
+            <p>Scan the file system for new MP3 files and update metadata.</p>
+            <button onclick="rescanMusicLibrary()">Rescan Library</button>
+            <div id="rescan-result" class="result"></div>
+        </div>
+
+        <div class="admin-section">
+            <h2>📁 File Upload Instructions</h2>
+            <div class="file-upload">
+                <h3>How to Add MP3 Files</h3>
+                <p>1. Place MP3 files in the appropriate category folders:</p>
+                <ul style="text-align: left; display: inline-block;">
+                    <li><code>client/src/assets/background-music/creative/</code> - Creative & Artistic</li>
+                    <li><code>client/src/assets/background-music/playful/</code> - Playful & Fun</li>
+                    <li><code>client/src/assets/background-music/peaceful/</code> - Peaceful & Calm</li>
+                    <li><code>client/src/assets/background-music/confident/</code> - Confident & Empowering</li>
+                    <li><code>client/src/assets/background-music/dreamy/</code> - Dreamy & Magical</li>
+                </ul>
+                <p>2. The system will automatically read MP3 metadata (title, artist, duration)</p>
+                <p>3. Click "Rescan Library" to update the system</p>
+            </div>
+        </div>
+
+        <div class="admin-section">
+            <h2>📋 Music Categories</h2>
+            <div id="categories-display">
+                <div class="category-grid">
+                    <div class="category-card">
+                        <h4>Creative & Artistic</h4>
+                        <p>Inspiring music for creative avatar design</p>
+                        <div class="track-count">0 tracks</div>
+                    </div>
+                    <div class="category-card">
+                        <h4>Playful & Fun</h4>
+                        <p>Upbeat music for playful avatar creation</p>
+                        <div class="track-count">0 tracks</div>
+                    </div>
+                    <div class="category-card">
+                        <h4>Peaceful & Calm</h4>
+                        <p>Relaxing music for thoughtful avatar design</p>
+                        <div class="track-count">0 tracks</div>
+                    </div>
+                    <div class="category-card">
+                        <h4>Confident & Empowering</h4>
+                        <p>Empowering music for bold avatar choices</p>
+                        <div class="track-count">0 tracks</div>
+                    </div>
+                    <div class="category-card">
+                        <h4>Dreamy & Magical</h4>
+                        <p>Fantasy-inspired music for imaginative avatars</p>
+                        <div class="track-count">0 tracks</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function getAdminSecret() {
+            const secret = document.getElementById('adminSecret').value.trim();
+            return secret || 'admin123'; // Default for testing
+        }
+
+        async function getMusicStats() {
+            const resultDiv = document.getElementById('stats-result');
+            resultDiv.innerHTML = '<p>📊 Fetching music statistics...</p>';
+            
+            try {
+                const response = await fetch('/api/background-music/stats');
+                const result = await response.json();
+                
+                if (result.success) {
+                    const stats = result.stats;
+                    
+                    let statsHtml = `
+                        <h3>📊 Music Library Statistics</h3>
+                        <p><strong>Total Categories:</strong> ${stats.totalCategories}</p>
+                        <p><strong>Total Tracks:</strong> ${stats.totalTracks}</p>
+                        <p><strong>Categories with Music:</strong> ${stats.categoriesPopulated}</p>
+                        <p><strong>Average Tracks per Category:</strong> ${stats.averageTracksPerCategory.toFixed(1)}</p>
+                        
+                        <h4>📋 By Category</h4>
+                        <div class="category-grid">
+                    `;
+                    
+                    Object.entries(stats.categoryBreakdown).forEach(([category, data]) => {
+                        const duration = data.totalDuration > 0 ? 
+                            `${Math.floor(data.totalDuration / 60)}:${(data.totalDuration % 60).toFixed(0).padStart(2, '0')}` : 
+                            '0:00';
+                        
+                        statsHtml += `
+                            <div class="category-card">
+                                <h4>${data.name}</h4>
+                                <div class="track-count">${data.trackCount} tracks</div>
+                                <p>Total Duration: ${duration}</p>
+                            </div>
+                        `;
+                    });
+                    
+                    statsHtml += `</div>`;
+                    
+                    resultDiv.innerHTML = statsHtml;
+                    resultDiv.className = 'result success';
+                    
+                } else {
+                    resultDiv.innerHTML = `❌ Error: ${result.error}`;
+                    resultDiv.className = 'result error';
+                }
+                
+            } catch (error) {
+                resultDiv.innerHTML = `❌ Request failed: ${error.message}`;
+                resultDiv.className = 'result error';
+            }
+        }
+
+        async function getMusicLibrary() {
+            const resultDiv = document.getElementById('library-result');
+            resultDiv.innerHTML = '<p>🎵 Loading music library...</p>';
+            
+            try {
+                const response = await fetch('/api/background-music/library');
+                const result = await response.json();
+                
+                if (result.success) {
+                    const library = result.library;
+                    
+                    let libraryHtml = `
+                        <h3>🎵 Music Library Contents</h3>
+                        <p><strong>Total Files Found:</strong> ${library.totalFiles}</p>
+                    `;
+                    
+                    if (library.uncategorizedFiles.length > 0) {
+                        libraryHtml += `
+                            <h4>⚠️ Uncategorized Files (${library.uncategorizedFiles.length})</h4>
+                            <ul>${library.uncategorizedFiles.map(file => `<li>${file}</li>`).join('')}</ul>
+                        `;
+                    }
+                    
+                    Object.entries(library.categorizedFiles).forEach(([category, tracks]) => {
+                        if (tracks.length > 0) {
+                            libraryHtml += `
+                                <h4>📁 ${category.charAt(0).toUpperCase() + category.slice(1)} (${tracks.length} tracks)</h4>
+                                <ul>
+                            `;
+                            tracks.forEach(track => {
+                                const duration = track.duration > 0 ? 
+                                    `${Math.floor(track.duration / 60)}:${(track.duration % 60).toFixed(0).padStart(2, '0')}` : 
+                                    '?:??';
+                                libraryHtml += `
+                                    <li><strong>${track.title}</strong> by ${track.artist} (${duration})</li>
+                                `;
+                            });
+                            libraryHtml += `</ul>`;
+                        }
+                    });
+                    
+                    resultDiv.innerHTML = libraryHtml;
+                    resultDiv.className = 'result success';
+                    
+                } else {
+                    resultDiv.innerHTML = `❌ Error: ${result.error}`;
+                    resultDiv.className = 'result error';
+                }
+                
+            } catch (error) {
+                resultDiv.innerHTML = `❌ Request failed: ${error.message}`;
+                resultDiv.className = 'result error';
+            }
+        }
+
+        async function rescanMusicLibrary() {
+            const resultDiv = document.getElementById('rescan-result');
+            resultDiv.innerHTML = '<p>🔄 Rescanning music library...</p>';
+            
+            try {
+                const response = await fetch('/api/background-music/admin/rescan', {
+                    method: 'POST',
+                    headers: {
+                        'x-admin-secret': getAdminSecret(),
+                        'Content-Type': 'application/json'
+                    }
+                });
+                
+                const result = await response.json();
+                
+                if (result.success) {
+                    const library = result.library;
+                    const stats = result.stats;
+                    
+                    let rescanHtml = `
+                        <h3>✅ Library Rescan Complete</h3>
+                        <p><strong>Files Found:</strong> ${library.totalFiles}</p>
+                        <p><strong>Categories with Music:</strong> ${stats.categoriesPopulated}/${stats.totalCategories}</p>
+                        
+                        <h4>📋 Summary by Category</h4>
+                    `;
+                    
+                    Object.entries(stats.categoryBreakdown).forEach(([category, data]) => {
+                        rescanHtml += `<p><strong>${data.name}:</strong> ${data.trackCount} tracks</p>`;
+                    });
+                    
+                    if (library.uncategorizedFiles.length > 0) {
+                        rescanHtml += `
+                            <h4>⚠️ Uncategorized Files</h4>
+                            <p>These files need to be moved to appropriate category folders:</p>
+                            <ul>${library.uncategorizedFiles.map(file => `<li>${file}</li>`).join('')}</ul>
+                        `;
+                    }
+                    
+                    resultDiv.innerHTML = rescanHtml;
+                    resultDiv.className = 'result success';
+                    
+                } else {
+                    resultDiv.innerHTML = `❌ Rescan failed: ${result.error}`;
+                    resultDiv.className = 'result error';
+                }
+                
+            } catch (error) {
+                resultDiv.innerHTML = `❌ Request failed: ${error.message}`;
+                resultDiv.className = 'result error';
+            }
+        }
+
+        // Auto-load stats on page load
+        window.addEventListener('load', () => {
+            const secretInput = document.getElementById('adminSecret');
+            secretInput.value = 'admin123'; // Default for testing
+            getMusicStats();
+        });
+    </script>
+</body>
+</html>

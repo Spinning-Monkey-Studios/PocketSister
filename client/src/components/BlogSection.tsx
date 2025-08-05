@@ -9,7 +9,7 @@ const categories = ["All Posts", "Friendship", "Creativity", "Self-Care", "Growt
 export default function BlogSection() {
   const [selectedCategory, setSelectedCategory] = useState("All Posts");
 
-  const { data: blogPosts, isLoading } = useQuery({
+  const { data: blogPosts, isLoading } = useQuery<BlogPost[]>({
     queryKey: selectedCategory === "All Posts" 
       ? ['/api/blog-posts'] 
       : ['/api/blog-posts', { category: selectedCategory }],

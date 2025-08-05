@@ -36,13 +36,13 @@ export default function MoodTracker({ childId }: { childId: string }) {
   const [selectedMood, setSelectedMood] = useState<{ mood: string; score: number } | null>(null);
   const [notes, setNotes] = useState("");
 
-  const { data: moodHistory, isLoading } = useQuery({
+  const { data: moodHistory = [], isLoading } = useQuery<MoodEntry[]>({
     queryKey: ['/api/mood-tracking', childId],
     enabled: !!childId && isAuthenticated,
     retry: false,
   });
 
-  const { data: todaysMood } = useQuery({
+  const { data: todaysMood } = useQuery<MoodEntry | null>({
     queryKey: ['/api/mood-entry/today', childId],
     enabled: !!childId && isAuthenticated,
     retry: false,

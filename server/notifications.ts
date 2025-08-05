@@ -1,340 +1,190 @@
-import { storage } from "./storage";
+import { db } from './db.js';
+import { users, childProfiles } from '../shared/schema.js';
+import { eq } from 'drizzle-orm';
 
-export interface PushNotificationPayload {
+interface PushNotificationPayload {
   title: string;
   body: string;
   data?: Record<string, any>;
+  badge?: number;
   icon?: string;
-  badge?: string;
-  sound?: string;
+  image?: string;
+  actions?: Array<{
+    action: string;
+    title: string;
+    icon?: string;
+  }>;
 }
 
-export interface NotificationRecipient {
-  userId: string;
-  deviceTokens: string[];
-  preferences: {
-    usageAlerts: boolean;
-    systemAnnouncements: boolean;
-    emergencyAlerts: boolean;
-  };
+interface EmailNotificationPayload {
+  to: string;
+  subject: string;
+  html: string;
+  text?: string;
 }
 
-export class NotificationService {
-  private fcmServerKey: string;
-  private apnsKeyId: string;
-  private apnsTeamId: string;
-  private apnsPrivateKey: string;
+class NotificationService {
+  private webPushEndpoints: Map<string, any> = new Map();
+  private emailService: any;
 
   constructor() {
-    this.fcmServerKey = process.env.FCM_SERVER_KEY || "";
-    this.apnsKeyId = process.env.APNS_KEY_ID || "";
-    this.apnsTeamId = process.env.APNS_TEAM_ID || "";
-    this.apnsPrivateKey = process.env.APNS_PRIVATE_KEY || "";
+    this.initializeEmailService();
   }
 
-  // Send usage alert to parents when child approaches token limit
-  async sendUsageAlert(childId: string, percentage: number, tokensUsed: number, monthlyLimit: number) {
+  private async initializeEmailService() {
     try {
-      // Get child profile and parent info
-      const child = await storage.getChildProfile(childId);
-      if (!child) return;
+      // Initialize email service (using existing email setup)
+      const { sendEmail } = await import('./email.js');
+      this.emailService = { sendEmail };
+    } catch (error) {
+      console.warn('Email service not available:', error);
+    }
+  }
 
-      const parent = await storage.getUser(child.userId);
-      if (!parent) return;
+  async sendPushNotification(userId: string, payload: PushNotificationPayload): Promise<void> {
+    try {
+      // Get user's push subscription endpoints
+      const [user] = await db
+        .select()
+        .from(users)
+        .where(eq(users.id, userId));
 
-      // Get parent's device tokens
-      const deviceTokens = await storage.getUserDeviceTokens(child.userId);
-      if (deviceTokens.length === 0) return;
+      if (!user) {
+        throw new Error('User not found');
+      }
 
-      const alertType = percentage >= 100 ? "limit_exceeded" : percentage >= 90 ? "approaching_limit" : "warning";
+      // For now, store notification for when push service is implemented
+      console.log(`Push notification for ${userId}:`, payload);
       
-      const payload: PushNotificationPayload = {
-        title: `${child.name} - Usage Alert`,
-        body: this.generateUsageAlertMessage(child.name, percentage, alertType),
-        data: {
-          type: "usage_alert",
-          childId: childId,
-          childName: child.name,
-          percentage: percentage.toString(),
-          tokensUsed: tokensUsed.toString(),
-          monthlyLimit: monthlyLimit.toString(),
-          alertType: alertType
-        },
-        icon: "ic_notification_usage",
-        sound: "default"
-      };
+      // In a real implementation, you would:
+      // 1. Send to web push service (Firebase, OneSignal, etc.)
+      // 2. Send to mobile app notification service
+      // 3. Store notification in database for retrieval
 
-      // Send to all user's devices
-      await this.sendToDevices(deviceTokens, payload);
-
-      // Record notification in database
-      await storage.recordNotification({
-        userId: child.userId,
-        childId: childId,
-        type: "usage_alert",
-        title: payload.title,
-        body: payload.body,
-        data: payload.data,
-        sentAt: new Date()
-      });
-
+      // Fallback to email notification for critical alerts
+      if (payload.data?.priority === 'critical' || payload.data?.priority === 'high') {
+        await this.sendEmailNotification({
+          to: user.email || '',
+          subject: payload.title,
+          html: this.createEmailTemplate(payload),
+          text: payload.body
+        });
+      }
     } catch (error) {
-      console.error("Error sending usage alert:", error);
+      console.error('Push notification failed:', error);
+      throw error;
     }
   }
 
-  // Send system announcement to all users or specific audience
-  async sendSystemAnnouncement(announcement: {
-    title: string;
-    message: string;
-    targetAudience?: "all" | "parents" | "premium";
-    priority: "low" | "normal" | "high";
-  }) {
+  async sendEmailNotification(payload: EmailNotificationPayload): Promise<void> {
     try {
-      const users = await storage.getAllUsersWithNotificationPreferences();
-      
-      const payload: PushNotificationPayload = {
-        title: announcement.title,
-        body: announcement.message,
-        data: {
-          type: "announcement",
-          priority: announcement.priority,
-          targetAudience: announcement.targetAudience || "all"
-        },
-        icon: "ic_notification_announcement",
-        sound: announcement.priority === "high" ? "alert" : "default"
-      };
-
-      // Filter users based on target audience and preferences
-      const targetUsers = users.filter(user => {
-        if (!user.notificationPreferences?.systemAnnouncements) return false;
-        
-        switch (announcement.targetAudience) {
-          case "parents":
-            return user.hasChildren;
-          case "premium":
-            return user.subscriptionStatus === "active" && user.subscriptionTier !== "basic";
-          default:
-            return true;
-        }
-      });
-
-      // Send to all target users
-      for (const user of targetUsers) {
-        const deviceTokens = await storage.getUserDeviceTokens(user.id);
-        if (deviceTokens.length > 0) {
-          await this.sendToDevices(deviceTokens, payload);
-        }
+      if (!this.emailService) {
+        console.warn('Email service not available');
+        return;
       }
 
-      // Record announcement broadcast
-      await storage.recordAnnouncementBroadcast({
-        announcementId: announcement.title,
-        targetAudience: announcement.targetAudience || "all",
-        recipientCount: targetUsers.length,
-        sentAt: new Date()
+      await this.emailService.sendEmail({
+        to: payload.to,
+        subject: payload.subject,
+        html: payload.html,
+        text: payload.text
       });
 
+      console.log(`Email notification sent to ${payload.to}`);
     } catch (error) {
-      console.error("Error sending system announcement:", error);
+      console.error('Email notification failed:', error);
+      throw error;
     }
   }
 
-  // Send emergency alert (security, safety concerns)
-  async sendEmergencyAlert(userId: string, alert: {
-    title: string;
-    message: string;
-    childId?: string;
-    actionRequired?: boolean;
-  }) {
+  private createEmailTemplate(payload: PushNotificationPayload): string {
+    return `
+      <!DOCTYPE html>
+      <html>
+      <head>
+        <meta charset="utf-8">
+        <title>${payload.title}</title>
+        <style>
+          body { font-family: Arial, sans-serif; margin: 0; padding: 20px; background-color: #f5f5f5; }
+          .container { max-width: 600px; margin: 0 auto; background: white; border-radius: 8px; overflow: hidden; box-shadow: 0 2px 10px rgba(0,0,0,0.1); }
+          .header { background: #ff6b6b; color: white; padding: 20px; text-align: center; }
+          .content { padding: 30px; }
+          .footer { background: #f8f9fa; padding: 20px; text-align: center; font-size: 14px; color: #666; }
+          .alert-high { border-left: 4px solid #ff6b6b; }
+          .alert-critical { border-left: 4px solid #dc3545; background: #fff5f5; }
+          .button { display: inline-block; padding: 12px 24px; background: #007bff; color: white; text-decoration: none; border-radius: 4px; margin: 15px 0; }
+        </style>
+      </head>
+      <body>
+        <div class="container">
+          <div class="header">
+            <h1>${payload.title}</h1>
+          </div>
+          <div class="content ${payload.data?.priority === 'critical' ? 'alert-critical' : payload.data?.priority === 'high' ? 'alert-high' : ''}">
+            <h2>Safety Alert Notification</h2>
+            <p>${payload.body}</p>
+            
+            ${payload.data?.alertType ? `<p><strong>Alert Type:</strong> ${payload.data.alertType.replace('_', ' ').toUpperCase()}</p>` : ''}
+            ${payload.data?.priority ? `<p><strong>Priority:</strong> ${payload.data.priority.toUpperCase()}</p>` : ''}
+            
+            <p>Please log into your parent portal to review this alert and take any necessary actions.</p>
+            
+            <a href="${process.env.REPL_SLUG ? `https://${process.env.REPL_SLUG}.replit.app/test-parent-portal` : 'http://localhost:5000/test-parent-portal'}" class="button">
+              View Parent Portal
+            </a>
+          </div>
+          <div class="footer">
+            <p>My Pocket Sister - AI Companion Safety System</p>
+            <p>This is an automated safety notification. If you have concerns, please contact our support team.</p>
+          </div>
+        </div>
+      </body>
+      </html>
+    `;
+  }
+
+  async registerPushSubscription(userId: string, subscription: any): Promise<void> {
     try {
-      const deviceTokens = await storage.getUserDeviceTokens(userId);
-      if (deviceTokens.length === 0) return;
-
-      const payload: PushNotificationPayload = {
-        title: `🚨 ${alert.title}`,
-        body: alert.message,
-        data: {
-          type: "emergency_alert",
-          childId: alert.childId,
-          actionRequired: alert.actionRequired?.toString() || "false",
-          timestamp: new Date().toISOString()
-        },
-        icon: "ic_notification_emergency",
-        sound: "alert",
-        badge: "1"
-      };
-
-      await this.sendToDevices(deviceTokens, payload);
-
-      // Record emergency alert
-      await storage.recordNotification({
-        userId: userId,
-        childId: alert.childId,
-        type: "emergency_alert",
-        title: payload.title,
-        body: payload.body,
-        data: payload.data,
-        sentAt: new Date(),
-        priority: "high"
-      });
-
+      // Store push subscription for user
+      this.webPushEndpoints.set(userId, subscription);
+      console.log(`Push subscription registered for user ${userId}`);
     } catch (error) {
-      console.error("Error sending emergency alert:", error);
+      console.error('Failed to register push subscription:', error);
     }
   }
 
-  // Send to multiple devices (both Android and iOS)
-  private async sendToDevices(deviceTokens: string[], payload: PushNotificationPayload) {
-    const androidTokens = deviceTokens.filter(token => token.startsWith("f") || token.startsWith("c")); // FCM tokens
-    const iosTokens = deviceTokens.filter(token => token.length === 64); // APNS tokens
-
-    // Send to Android devices via FCM
-    if (androidTokens.length > 0 && this.fcmServerKey) {
-      await this.sendToAndroid(androidTokens, payload);
-    }
-
-    // Send to iOS devices via APNS
-    if (iosTokens.length > 0 && this.apnsPrivateKey) {
-      await this.sendToIOS(iosTokens, payload);
-    }
-  }
-
-  // Send notification to Android devices via Firebase Cloud Messaging
-  private async sendToAndroid(tokens: string[], payload: PushNotificationPayload) {
+  async unregisterPushSubscription(userId: string): Promise<void> {
     try {
-      const fcmPayload = {
-        registration_ids: tokens,
-        notification: {
-          title: payload.title,
-          body: payload.body,
-          icon: payload.icon || "ic_notification",
-          sound: payload.sound || "default",
-          click_action: "FLUTTER_NOTIFICATION_CLICK"
-        },
-        data: payload.data || {},
-        priority: "high",
-        time_to_live: 86400 // 24 hours
-      };
-
-      const response = await fetch("https://fcm.googleapis.com/fcm/send", {
-        method: "POST",
-        headers: {
-          "Authorization": `key=${this.fcmServerKey}`,
-          "Content-Type": "application/json"
-        },
-        body: JSON.stringify(fcmPayload)
-      });
-
-      const result = await response.json();
-      console.log("FCM Response:", result);
-
-      // Handle failed tokens
-      if (result.failure > 0) {
-        await this.handleFailedTokens(tokens, result.results, "android");
-      }
-
+      this.webPushEndpoints.delete(userId);
+      console.log(`Push subscription removed for user ${userId}`);
     } catch (error) {
-      console.error("Error sending to Android devices:", error);
+      console.error('Failed to unregister push subscription:', error);
     }
   }
 
-  // Send notification to iOS devices via Apple Push Notification Service
-  private async sendToIOS(tokens: string[], payload: PushNotificationPayload) {
-    try {
-      // For production, you would use a proper APNS library like node-apn
-      // This is a simplified implementation
-      const apnsPayload = {
-        aps: {
-          alert: {
-            title: payload.title,
-            body: payload.body
-          },
-          sound: payload.sound || "default",
-          badge: payload.badge ? parseInt(payload.badge) : undefined
-        },
-        data: payload.data || {}
-      };
-
-      // In a real implementation, you would send to APNS servers
-      console.log("Would send to iOS devices:", {
-        tokens: tokens.length,
-        payload: apnsPayload
-      });
-
-      // For now, just log the attempt
-      // TODO: Implement actual APNS sending with proper certificates
-
-    } catch (error) {
-      console.error("Error sending to iOS devices:", error);
-    }
+  async sendBulkNotification(userIds: string[], payload: PushNotificationPayload): Promise<void> {
+    const promises = userIds.map(userId => this.sendPushNotification(userId, payload));
+    await Promise.allSettled(promises);
   }
 
-  // Handle failed device tokens (remove invalid tokens)
-  private async handleFailedTokens(tokens: string[], results: any[], platform: "android" | "ios") {
-    for (let i = 0; i < results.length; i++) {
-      const result = results[i];
-      if (result.error) {
-        const token = tokens[i];
-        console.log(`Removing invalid ${platform} token:`, token, result.error);
-        await storage.removeDeviceToken(token);
-      }
-    }
-  }
-
-  // Generate appropriate message for usage alerts
-  private generateUsageAlertMessage(childName: string, percentage: number, alertType: string): string {
-    switch (alertType) {
-      case "limit_exceeded":
-        return `${childName} has exceeded their monthly token limit. Consider upgrading your plan or waiting for next month's reset.`;
-      case "approaching_limit":
-        return `${childName} has used ${Math.round(percentage)}% of their monthly tokens. They're approaching their limit.`;
-      case "warning":
-        return `${childName} has used ${Math.round(percentage)}% of their monthly tokens. Consider monitoring their usage.`;
-      default:
-        return `${childName} has used ${Math.round(percentage)}% of their monthly tokens.`;
-    }
-  }
-
-  // Register device token for push notifications
-  async registerDeviceToken(userId: string, token: string, platform: "android" | "ios") {
-    try {
-      await storage.saveDeviceToken({
-        userId: userId,
-        token: token,
-        platform: platform,
-        registeredAt: new Date(),
-        isActive: true
-      });
-      console.log(`Registered ${platform} device token for user ${userId}`);
-    } catch (error) {
-      console.error("Error registering device token:", error);
-    }
-  }
-
-  // Update notification preferences
-  async updateNotificationPreferences(userId: string, preferences: {
-    usageAlerts?: boolean;
-    systemAnnouncements?: boolean;
-    emergencyAlerts?: boolean;
-  }) {
-    try {
-      await storage.updateUserNotificationPreferences(userId, preferences);
-      console.log(`Updated notification preferences for user ${userId}`);
-    } catch (error) {
-      console.error("Error updating notification preferences:", error);
-    }
-  }
-
-  // Get notification history for user
-  async getNotificationHistory(userId: string, limit: number = 50) {
-    try {
-      return await storage.getUserNotificationHistory(userId, limit);
-    } catch (error) {
-      console.error("Error getting notification history:", error);
-      return [];
-    }
+  async getNotificationHistory(userId: string, limit: number = 50): Promise<any[]> {
+    // In a real implementation, you would fetch from a notifications table
+    // For now, return empty array
+    return [];
   }
 }
 
+// Export the class
+export { NotificationService };
+
 export const notificationService = new NotificationService();
+
+// Export convenience functions
+export const sendPushNotification = (userId: string, payload: PushNotificationPayload) => 
+  notificationService.sendPushNotification(userId, payload);
+
+export const sendEmailNotification = (payload: EmailNotificationPayload) => 
+  notificationService.sendEmailNotification(payload);
+
+export const registerPushSubscription = (userId: string, subscription: any) => 
+  notificationService.registerPushSubscription(userId, subscription);

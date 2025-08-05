@@ -7,7 +7,7 @@ import type { Testimonial } from "@shared/schema";
 export default function TestimonialsSection() {
   const [currentSlide, setCurrentSlide] = useState(0);
 
-  const { data: testimonials, isLoading } = useQuery({
+  const { data: testimonials, isLoading } = useQuery<Testimonial[]>({
     queryKey: ['/api/testimonials'],
   });
 
@@ -49,7 +49,7 @@ export default function TestimonialsSection() {
         </div>
         
         <div className="grid md:grid-cols-3 gap-8">
-          {testimonials.map((testimonial: Testimonial, index: number) => (
+          {testimonials?.map((testimonial: Testimonial, index: number) => (
             <div key={testimonial.id} className="bg-white rounded-3xl p-8 shadow-lg hover:shadow-xl transition-shadow">
               <div className="flex items-center mb-6">
                 <div className={`w-12 h-12 ${getGradientClass(index)} rounded-full flex items-center justify-center text-white font-bold`}>

@@ -1,0 +1,426 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Token Usage System Test</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+            line-height: 1.6;
+        }
+        
+        .test-section {
+            background: #f8f9fa;
+            border: 1px solid #e9ecef;
+            border-radius: 8px;
+            padding: 20px;
+            margin: 20px 0;
+        }
+        
+        .button {
+            background: #007bff;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            margin: 5px;
+        }
+        
+        .button:hover {
+            background: #0056b3;
+        }
+        
+        .button.danger {
+            background: #dc3545;
+        }
+        
+        .button.success {
+            background: #28a745;
+        }
+        
+        .result {
+            background: white;
+            border: 1px solid #dee2e6;
+            border-radius: 4px;
+            padding: 15px;
+            margin: 10px 0;
+            white-space: pre-wrap;
+            font-family: monospace;
+        }
+        
+        .error {
+            color: #dc3545;
+            background: #f8d7da;
+            border-color: #f5c6cb;
+        }
+        
+        .success {
+            color: #155724;
+            background: #d4edda;
+            border-color: #c3e6cb;
+        }
+        
+        .info {
+            color: #0c5460;
+            background: #d1ecf1;
+            border-color: #bee5eb;
+        }
+        
+        .warning {
+            color: #856404;
+            background: #fff3cd;
+            border-color: #ffeaa7;
+        }
+
+        .status-badge {
+            display: inline-block;
+            padding: 4px 8px;
+            border-radius: 12px;
+            font-size: 12px;
+            font-weight: bold;
+        }
+
+        .badge-available {
+            background: #28a745;
+            color: white;
+        }
+
+        .badge-restricted {
+            background: #dc3545;
+            color: white;
+        }
+
+        .badge-warning {
+            background: #ffc107;
+            color: #212529;
+        }
+        
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 20px;
+        }
+    </style>
+</head>
+<body>
+    <h1>🔥 Token Usage System Integration Test</h1>
+    
+    <div class="test-section">
+        <h2>📊 System Overview</h2>
+        <p>This page tests the comprehensive token-based usage tracking system with upgrade prompts and purchase options that "ghost out" AI features when limits are exceeded.</p>
+        <div class="info result">
+Token System Features:
+✓ Token usage tracking per child profile
+✓ Feature restrictions based on token availability
+✓ Automatic "ghosting" of restricted features
+✓ Upgrade prompts for premium features
+✓ Token purchase options for existing subscribers
+✓ Monthly token limits with reset cycles
+✓ Real-time token monitoring
+        </div>
+    </div>
+
+    <div class="grid">
+        <div class="test-section">
+            <h2>🎯 Token Status Testing</h2>
+            <button class="button" onclick="testTokenStatus()">Check Token Status</button>
+            <button class="button" onclick="testTokenRestrictions()">Test Feature Restrictions</button>
+            <button class="button danger" onclick="simulateTokenExhaustion()">Simulate Token Exhaustion</button>
+            <div id="tokenStatusResult" class="result" style="display: none;"></div>
+        </div>
+
+        <div class="test-section">
+            <h2>💬 Chat Feature Testing</h2>
+            <button class="button" onclick="testChatMessage()">Send Test Chat Message</button>
+            <button class="button" onclick="testChatWithFiles()">Test Chat with File Upload</button>
+            <button class="button warning" onclick="testChatWhenRestricted()">Test Restricted Chat</button>
+            <div id="chatTestResult" class="result" style="display: none;"></div>
+        </div>
+
+        <div class="test-section">
+            <h2>🎤 Voice Features Testing</h2>
+            <button class="button" onclick="testVoiceSynthesis()">Test Voice Synthesis</button>
+            <button class="button warning" onclick="testVoiceWhenRestricted()">Test Restricted Voice</button>
+            <div id="voiceTestResult" class="result" style="display: none;"></div>
+        </div>
+
+        <div class="test-section">
+            <h2>💳 Payment Integration Testing</h2>
+            <button class="button success" onclick="testUpgradePrompt()">Test Upgrade Prompt</button>
+            <button class="button success" onclick="testTokenPurchase()">Test Token Purchase</button>
+            <button class="button" onclick="testSubscriptionStatus()">Check Subscription Status</button>
+            <div id="paymentTestResult" class="result" style="display: none;"></div>
+        </div>
+    </div>
+
+    <div class="test-section">
+        <h2>📈 Usage Analytics</h2>
+        <button class="button" onclick="getUsageAnalytics()">Get Usage Analytics</button>
+        <button class="button" onclick="getTokenHistory()">Get Token History</button>
+        <div id="analyticsResult" class="result" style="display: none;"></div>
+    </div>
+
+    <div class="test-section">
+        <h2>🔧 System Administration</h2>
+        <p>Admin-only functions for testing and management:</p>
+        <button class="button danger" onclick="resetTokens()">Reset Tokens (Admin)</button>
+        <button class="button" onclick="viewAllSubscriptions()">View All Subscriptions (Admin)</button>
+        <button class="button" onclick="generateTestData()">Generate Test Data (Admin)</button>
+        <div id="adminResult" class="result" style="display: none;"></div>
+    </div>
+
+    <script>
+        const TEST_CHILD_ID = 'demo-child-1';
+        const TEST_USER_ID = 'demo-user';
+
+        function showResult(elementId, content, type = 'info') {
+            const element = document.getElementById(elementId);
+            element.className = `result ${type}`;
+            element.textContent = content;
+            element.style.display = 'block';
+        }
+
+        function formatJsonResult(elementId, data, type = 'info') {
+            const element = document.getElementById(elementId);
+            element.className = `result ${type}`;
+            element.textContent = JSON.stringify(data, null, 2);
+            element.style.display = 'block';
+        }
+
+        async function apiCall(endpoint, method = 'GET', data = null) {
+            try {
+                const options = {
+                    method,
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'x-user-id': TEST_USER_ID
+                    }
+                };
+                
+                if (data) {
+                    options.body = JSON.stringify(data);
+                }
+
+                const response = await fetch(endpoint, options);
+                const result = await response.json();
+                
+                return {
+                    success: response.ok,
+                    status: response.status,
+                    data: result
+                };
+            } catch (error) {
+                return {
+                    success: false,
+                    error: error.message
+                };
+            }
+        }
+
+        // Token Status Testing
+        async function testTokenStatus() {
+            showResult('tokenStatusResult', 'Checking token status...', 'info');
+            const result = await apiCall(`/api/tokens/status/${TEST_CHILD_ID}`);
+            
+            if (result.success) {
+                formatJsonResult('tokenStatusResult', result.data, 'success');
+            } else {
+                showResult('tokenStatusResult', `Error: ${result.error || result.data?.message}`, 'error');
+            }
+        }
+
+        async function testTokenRestrictions() {
+            showResult('tokenStatusResult', 'Checking feature restrictions...', 'info');
+            const result = await apiCall(`/api/tokens/restrictions/${TEST_CHILD_ID}`);
+            
+            if (result.success) {
+                formatJsonResult('tokenStatusResult', result.data, 'success');
+            } else {
+                showResult('tokenStatusResult', `Error: ${result.error || result.data?.message}`, 'error');
+            }
+        }
+
+        async function simulateTokenExhaustion() {
+            showResult('tokenStatusResult', 'Simulating token exhaustion...', 'warning');
+            // This would require admin privileges to artificially set token usage to maximum
+            const result = await apiCall(`/api/admin/tokens/exhaust/${TEST_CHILD_ID}`, 'POST');
+            
+            if (result.success) {
+                showResult('tokenStatusResult', 'Token exhaustion simulated successfully. Test feature restrictions now.', 'warning');
+            } else {
+                showResult('tokenStatusResult', `Error: ${result.error || result.data?.message}`, 'error');
+            }
+        }
+
+        // Chat Feature Testing
+        async function testChatMessage() {
+            showResult('chatTestResult', 'Sending test chat message...', 'info');
+            const result = await apiCall('/api/chat/send', 'POST', {
+                message: 'Hello Stella! This is a test message to check token usage tracking.',
+                childId: TEST_CHILD_ID
+            });
+            
+            if (result.success) {
+                formatJsonResult('chatTestResult', result.data, 'success');
+            } else {
+                const type = result.status === 402 ? 'warning' : 'error';
+                formatJsonResult('chatTestResult', result.data, type);
+            }
+        }
+
+        async function testChatWithFiles() {
+            showResult('chatTestResult', 'Testing chat with file upload...', 'info');
+            // This would require actual file upload implementation
+            const result = await apiCall('/api/chat/send', 'POST', {
+                message: 'Here is a test file attachment.',
+                childId: TEST_CHILD_ID,
+                fileUrl: '/test-assets/sample.png',
+                fileName: 'sample.png',
+                fileMimeType: 'image/png'
+            });
+            
+            if (result.success) {
+                formatJsonResult('chatTestResult', result.data, 'success');
+            } else {
+                const type = result.status === 402 ? 'warning' : 'error';
+                formatJsonResult('chatTestResult', result.data, type);
+            }
+        }
+
+        async function testChatWhenRestricted() {
+            showResult('chatTestResult', 'Testing chat when tokens are restricted...', 'warning');
+            // First exhaust tokens, then try to chat
+            await simulateTokenExhaustion();
+            await new Promise(resolve => setTimeout(resolve, 1000)); // Wait a moment
+            await testChatMessage();
+        }
+
+        // Voice Features Testing
+        async function testVoiceSynthesis() {
+            showResult('voiceTestResult', 'Testing voice synthesis...', 'info');
+            const result = await apiCall('/api/voice/synthesize', 'POST', {
+                text: 'Hello! This is a test of the voice synthesis system.',
+                childId: TEST_CHILD_ID
+            });
+            
+            if (result.success) {
+                formatJsonResult('voiceTestResult', result.data, 'success');
+            } else {
+                const type = result.status === 402 ? 'warning' : 'error';
+                formatJsonResult('voiceTestResult', result.data, type);
+            }
+        }
+
+        async function testVoiceWhenRestricted() {
+            showResult('voiceTestResult', 'Testing voice when restricted...', 'warning');
+            // This would test voice synthesis with insufficient premium tokens
+            const result = await apiCall('/api/voice/synthesize', 'POST', {
+                text: 'This should be restricted for basic plan users.',
+                childId: TEST_CHILD_ID
+            });
+            
+            const type = result.status === 402 ? 'warning' : (result.success ? 'success' : 'error');
+            formatJsonResult('voiceTestResult', result.data, type);
+        }
+
+        // Payment Integration Testing
+        async function testUpgradePrompt() {
+            showResult('paymentTestResult', 'Testing upgrade prompt flow...', 'info');
+            showResult('paymentTestResult', 'Upgrade prompt would open here with current plan comparison and upgrade options. This integrates with Stripe for payment processing.', 'success');
+        }
+
+        async function testTokenPurchase() {
+            showResult('paymentTestResult', 'Testing token purchase flow...', 'info');
+            const result = await apiCall('/api/tokens/purchase', 'POST', {
+                childId: TEST_CHILD_ID,
+                tokenAmount: 100,
+                paymentMethodId: 'pm_test_card'
+            });
+            
+            if (result.success) {
+                formatJsonResult('paymentTestResult', result.data, 'success');
+            } else {
+                showResult('paymentTestResult', `Error: ${result.error || result.data?.message}`, 'error');
+            }
+        }
+
+        async function testSubscriptionStatus() {
+            showResult('paymentTestResult', 'Checking subscription status...', 'info');
+            const result = await apiCall(`/api/subscription/status/${TEST_USER_ID}`);
+            
+            if (result.success) {
+                formatJsonResult('paymentTestResult', result.data, 'success');
+            } else {
+                showResult('paymentTestResult', `Error: ${result.error || result.data?.message}`, 'error');
+            }
+        }
+
+        // Usage Analytics
+        async function getUsageAnalytics() {
+            showResult('analyticsResult', 'Fetching usage analytics...', 'info');
+            const result = await apiCall(`/api/tokens/analytics/${TEST_CHILD_ID}`);
+            
+            if (result.success) {
+                formatJsonResult('analyticsResult', result.data, 'success');
+            } else {
+                showResult('analyticsResult', `Error: ${result.error || result.data?.message}`, 'error');
+            }
+        }
+
+        async function getTokenHistory() {
+            showResult('analyticsResult', 'Fetching token usage history...', 'info');
+            const result = await apiCall(`/api/tokens/history/${TEST_CHILD_ID}`);
+            
+            if (result.success) {
+                formatJsonResult('analyticsResult', result.data, 'success');
+            } else {
+                showResult('analyticsResult', `Error: ${result.error || result.data?.message}`, 'error');
+            }
+        }
+
+        // Admin Functions
+        async function resetTokens() {
+            showResult('adminResult', 'Resetting tokens (admin function)...', 'warning');
+            const result = await apiCall(`/api/admin/tokens/reset/${TEST_CHILD_ID}`, 'POST');
+            
+            if (result.success) {
+                showResult('adminResult', 'Tokens reset successfully. Child profile now has full token allocation.', 'success');
+            } else {
+                showResult('adminResult', `Error: ${result.error || result.data?.message}`, 'error');
+            }
+        }
+
+        async function viewAllSubscriptions() {
+            showResult('adminResult', 'Fetching all subscriptions (admin view)...', 'info');
+            const result = await apiCall('/api/admin/subscriptions');
+            
+            if (result.success) {
+                formatJsonResult('adminResult', result.data, 'success');
+            } else {
+                showResult('adminResult', `Error: ${result.error || result.data?.message}`, 'error');
+            }
+        }
+
+        async function generateTestData() {
+            showResult('adminResult', 'Generating test data...', 'info');
+            const result = await apiCall('/api/admin/test-data/generate', 'POST');
+            
+            if (result.success) {
+                showResult('adminResult', 'Test data generated successfully. You can now test with realistic usage patterns.', 'success');
+            } else {
+                showResult('adminResult', `Error: ${result.error || result.data?.message}`, 'error');
+            }
+        }
+
+        // Auto-run basic status check on page load
+        window.addEventListener('load', () => {
+            testTokenStatus();
+        });
+    </script>
+</body>
+</html>

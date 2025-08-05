@@ -1,0 +1,695 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Avatar Graphics Admin Panel - My Pocket Sister</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            margin: 0;
+            padding: 20px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+            overflow: hidden;
+        }
+
+        .header {
+            background: linear-gradient(45deg, #FF6B6B, #4ECDC4);
+            color: white;
+            padding: 30px;
+            text-align: center;
+        }
+
+        .header h1 {
+            margin: 0;
+            font-size: 2.5em;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+        }
+
+        .header p {
+            margin: 10px 0 0 0;
+            opacity: 0.9;
+            font-size: 1.1em;
+        }
+
+        .admin-section {
+            padding: 30px;
+            border-bottom: 1px solid #eee;
+        }
+
+        .admin-section:last-child {
+            border-bottom: none;
+        }
+
+        .admin-section h2 {
+            color: #333;
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .admin-section p {
+            color: #666;
+            margin-bottom: 20px;
+            line-height: 1.6;
+        }
+
+        button {
+            background: linear-gradient(45deg, #FF6B6B, #4ECDC4);
+            color: white;
+            border: none;
+            padding: 12px 25px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 16px;
+            transition: all 0.3s ease;
+            margin-right: 10px;
+            margin-bottom: 10px;
+        }
+
+        button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+        }
+
+        button:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .result {
+            margin-top: 20px;
+            padding: 15px;
+            border-radius: 8px;
+            white-space: pre-wrap;
+            font-family: monospace;
+            font-size: 14px;
+            max-height: 400px;
+            overflow-y: auto;
+        }
+
+        .result.success {
+            background: #d4edda;
+            border: 1px solid #c3e6cb;
+            color: #155724;
+        }
+
+        .result.error {
+            background: #f8d7da;
+            border: 1px solid #f5c6cb;
+            color: #721c24;
+        }
+
+        .result.info {
+            background: #d1ecf1;
+            border: 1px solid #bee5eb;
+            color: #0c5460;
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin: 20px 0;
+        }
+
+        .stat-card {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 20px;
+            border-radius: 10px;
+            text-align: center;
+        }
+
+        .stat-card h3 {
+            margin: 0 0 10px 0;
+            font-size: 2em;
+        }
+
+        .stat-card p {
+            margin: 0;
+            opacity: 0.9;
+        }
+
+        .features-list {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 10px;
+            margin: 15px 0;
+        }
+
+        .feature-category {
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 8px;
+            border-left: 4px solid #4ECDC4;
+        }
+
+        .feature-category h4 {
+            margin: 0 0 10px 0;
+            color: #333;
+        }
+
+        .feature-count {
+            font-size: 1.5em;
+            font-weight: bold;
+            color: #FF6B6B;
+        }
+
+        .admin-input {
+            margin: 10px 0;
+        }
+
+        .admin-input label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: 500;
+            color: #333;
+        }
+
+        .admin-input input, .admin-input select {
+            width: 100%;
+            max-width: 300px;
+            padding: 10px;
+            border: 2px solid #ddd;
+            border-radius: 6px;
+            font-size: 14px;
+        }
+
+        .admin-input input:focus, .admin-input select:focus {
+            outline: none;
+            border-color: #4ECDC4;
+        }
+
+        .progress-bar {
+            width: 100%;
+            height: 20px;
+            background: #f0f0f0;
+            border-radius: 10px;
+            overflow: hidden;
+            margin: 10px 0;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(45deg, #FF6B6B, #4ECDC4);
+            transition: width 0.3s ease;
+        }
+
+        .secret-input {
+            background: #fff3cd;
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            border: 1px solid #ffeaa7;
+        }
+
+        .loading {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 3px solid #f3f3f3;
+            border-top: 3px solid #4ECDC4;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin-right: 10px;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .highlight {
+            background: linear-gradient(45deg, #FF6B6B, #4ECDC4);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🎨 Avatar Graphics Admin Panel</h1>
+            <p>AI-Powered Avatar Generation using Google Gemini for My Pocket Sister</p>
+        </div>
+
+        <div class="secret-input">
+            <label for="adminSecret">Admin Secret Key:</label>
+            <input type="password" id="adminSecret" placeholder="Enter admin secret key" />
+            <p style="margin: 10px 0 0 0; font-size: 14px; color: #856404;">
+                Required for all admin operations. Set ADMIN_SECRET environment variable on server.
+            </p>
+        </div>
+
+        <div class="admin-section">
+            <h2>📊 Avatar Graphics Statistics</h2>
+            <p>View comprehensive statistics about the avatar graphics library including completion rates and missing items.</p>
+            <button onclick="getGraphicsStats()">Get Graphics Statistics</button>
+            <div id="stats-result" class="result"></div>
+        </div>
+
+        <div class="admin-section">
+            <h2>📋 Missing Graphics Report</h2>
+            <p>Get a detailed list of all missing avatar graphics that need to be generated.</p>
+            <button onclick="getMissingGraphics()">Check Missing Graphics</button>
+            <div id="missing-result" class="result"></div>
+        </div>
+
+        <div class="admin-section">
+            <h2>🎨 Generate Single Component</h2>
+            <p>Generate a specific avatar component using AI. Perfect for testing or replacing specific items.</p>
+            
+            <div class="admin-input">
+                <label for="category">Category:</label>
+                <select id="category">
+                    <option value="faces">Faces</option>
+                    <option value="eyes">Eyes</option>
+                    <option value="hair">Hair</option>
+                    <option value="outfits">Outfits</option>
+                    <option value="accessories">Accessories</option>
+                    <option value="backgrounds">Backgrounds</option>
+                </select>
+            </div>
+
+            <div class="admin-input">
+                <label for="feature">Feature Name:</label>
+                <input type="text" id="feature" placeholder="e.g., round-happy, long-straight-blonde" />
+            </div>
+
+            <button onclick="generateSingleComponent()">Generate Component</button>
+            <button onclick="regenerateComponent()">Regenerate (Overwrite)</button>
+            <div id="single-result" class="result"></div>
+        </div>
+
+        <div class="admin-section">
+            <h2>🚀 Generate All Missing Graphics</h2>
+            <p><strong>⚠️ This is a comprehensive operation that will generate ALL missing avatar graphics using AI.</strong></p>
+            <p>This process may take several minutes and will use significant API quota. Use this to populate the initial avatar graphics library.</p>
+            
+            <button onclick="generateAllGraphics()" style="background: linear-gradient(45deg, #e74c3c, #f39c12);">
+                Generate ALL Missing Graphics
+            </button>
+            <div id="generate-all-result" class="result"></div>
+        </div>
+
+        <div class="admin-section">
+            <h2>🔍 Available Avatar Features</h2>
+            <p>Complete list of all avatar features that can be generated across all categories.</p>
+            <div id="features-display"></div>
+        </div>
+    </div>
+
+    <script>
+        function getAdminSecret() {
+            return document.getElementById('adminSecret').value.trim();
+        }
+
+        function showLoading(buttonElement) {
+            const originalText = buttonElement.textContent;
+            buttonElement.innerHTML = '<span class="loading"></span>' + originalText;
+            buttonElement.disabled = true;
+            return originalText;
+        }
+
+        function hideLoading(buttonElement, originalText) {
+            buttonElement.textContent = originalText;
+            buttonElement.disabled = false;
+        }
+
+        async function getGraphicsStats() {
+            const button = event.target;
+            const originalText = showLoading(button);
+            const resultDiv = document.getElementById('stats-result');
+            resultDiv.innerHTML = '<p>📊 Fetching avatar graphics statistics...</p>';
+            
+            try {
+                const response = await fetch('/api/admin/avatar-graphics/stats', {
+                    headers: {
+                        'x-admin-secret': getAdminSecret(),
+                        'Content-Type': 'application/json'
+                    }
+                });
+                
+                const result = await response.json();
+                
+                if (result.success) {
+                    const stats = result.stats;
+                    const features = result.availableFeatures.features;
+                    
+                    let categoriesHtml = '';
+                    Object.entries(stats.categoriesSummary).forEach(([category, data]) => {
+                        const percentage = data.total > 0 ? ((data.existing / data.total) * 100).toFixed(1) : '0';
+                        categoriesHtml += `
+                            <div class="feature-category">
+                                <h4>${category.charAt(0).toUpperCase() + category.slice(1)}</h4>
+                                <div class="feature-count">${data.existing}/${data.total}</div>
+                                <div class="progress-bar">
+                                    <div class="progress-fill" style="width: ${percentage}%"></div>
+                                </div>
+                                <p style="margin: 5px 0 0 0; font-size: 12px; color: #666;">
+                                    ${percentage}% complete, ${data.missing} missing
+                                </p>
+                            </div>
+                        `;
+                    });
+
+                    resultDiv.innerHTML = `
+                        <h3>📊 Avatar Graphics Statistics</h3>
+                        
+                        <div class="stats-grid">
+                            <div class="stat-card">
+                                <h3>${stats.totalFeatures}</h3>
+                                <p>Total Features</p>
+                            </div>
+                            <div class="stat-card">
+                                <h3>${stats.existingGraphics}</h3>
+                                <p>Generated</p>
+                            </div>
+                            <div class="stat-card">
+                                <h3>${stats.missingGraphics}</h3>
+                                <p>Missing</p>
+                            </div>
+                            <div class="stat-card">
+                                <h3>${stats.completionPercentage.toFixed(1)}%</h3>
+                                <p>Complete</p>
+                            </div>
+                        </div>
+                        
+                        <h4>📋 By Category</h4>
+                        <div class="features-list">
+                            ${categoriesHtml}
+                        </div>
+                        
+                        <details style="margin-top: 20px;">
+                            <summary>Full Statistics JSON</summary>
+                            <pre>${JSON.stringify(result, null, 2)}</pre>
+                        </details>
+                    `;
+                    resultDiv.className = 'result success';
+                    
+                    // Also populate the features display
+                    displayAvailableFeatures(features);
+                    
+                } else {
+                    resultDiv.innerHTML = `❌ Error: ${result.error}`;
+                    resultDiv.className = 'result error';
+                }
+                
+            } catch (error) {
+                resultDiv.innerHTML = `❌ Request failed: ${error.message}`;
+                resultDiv.className = 'result error';
+            } finally {
+                hideLoading(button, originalText);
+            }
+        }
+
+        async function getMissingGraphics() {
+            const button = event.target;
+            const originalText = showLoading(button);
+            const resultDiv = document.getElementById('missing-result');
+            resultDiv.innerHTML = '<p>📋 Checking for missing avatar graphics...</p>';
+            
+            try {
+                const response = await fetch('/api/admin/avatar-graphics/missing', {
+                    headers: {
+                        'x-admin-secret': getAdminSecret(),
+                        'Content-Type': 'application/json'
+                    }
+                });
+                
+                const result = await response.json();
+                
+                if (result.success) {
+                    if (result.missingCount === 0) {
+                        resultDiv.innerHTML = `
+                            <h3>✅ All Graphics Complete!</h3>
+                            <p>No missing avatar graphics found. The library is complete!</p>
+                        `;
+                        resultDiv.className = 'result success';
+                    } else {
+                        // Group missing items by category
+                        const byCategory = {};
+                        result.missing.forEach(item => {
+                            if (!byCategory[item.category]) {
+                                byCategory[item.category] = [];
+                            }
+                            byCategory[item.category].push(item.feature);
+                        });
+
+                        let missingHtml = `<h3>📋 Missing Graphics Report</h3>`;
+                        missingHtml += `<p><strong>${result.missingCount} graphics need to be generated:</strong></p>`;
+                        
+                        Object.entries(byCategory).forEach(([category, features]) => {
+                            missingHtml += `
+                                <div class="feature-category">
+                                    <h4>${category.charAt(0).toUpperCase() + category.slice(1)} (${features.length} missing)</h4>
+                                    <p style="font-size: 12px; color: #666; margin: 5px 0;">
+                                        ${features.join(', ')}
+                                    </p>
+                                </div>
+                            `;
+                        });
+                        
+                        resultDiv.innerHTML = missingHtml;
+                        resultDiv.className = 'result info';
+                    }
+                } else {
+                    resultDiv.innerHTML = `❌ Error: ${result.error}`;
+                    resultDiv.className = 'result error';
+                }
+                
+            } catch (error) {
+                resultDiv.innerHTML = `❌ Request failed: ${error.message}`;
+                resultDiv.className = 'result error';
+            } finally {
+                hideLoading(button, originalText);
+            }
+        }
+
+        async function generateSingleComponent() {
+            const button = event.target;
+            const originalText = showLoading(button);
+            const resultDiv = document.getElementById('single-result');
+            const category = document.getElementById('category').value;
+            const feature = document.getElementById('feature').value.trim();
+            
+            if (!feature) {
+                resultDiv.innerHTML = '❌ Please enter a feature name';
+                resultDiv.className = 'result error';
+                hideLoading(button, originalText);
+                return;
+            }
+            
+            resultDiv.innerHTML = `<p>🎨 Generating ${category}/${feature} using AI...</p>`;
+            
+            try {
+                const response = await fetch('/api/admin/avatar-graphics/generate', {
+                    method: 'POST',
+                    headers: {
+                        'x-admin-secret': getAdminSecret(),
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ category, feature })
+                });
+                
+                const result = await response.json();
+                
+                if (result.success) {
+                    resultDiv.innerHTML = `
+                        <h3>✅ Successfully Generated!</h3>
+                        <p><strong>Component:</strong> <span class="highlight">${result.category}/${result.feature}</span></p>
+                        <p><strong>File Path:</strong> ${result.filePath}</p>
+                        <p><strong>SVG Size:</strong> ${result.svgLength} characters</p>
+                        <p><strong>Status:</strong> Ready for use in avatar game</p>
+                    `;
+                    resultDiv.className = 'result success';
+                } else {
+                    resultDiv.innerHTML = `❌ Generation failed: ${result.error}`;
+                    resultDiv.className = 'result error';
+                }
+                
+            } catch (error) {
+                resultDiv.innerHTML = `❌ Request failed: ${error.message}`;
+                resultDiv.className = 'result error';
+            } finally {
+                hideLoading(button, originalText);
+            }
+        }
+
+        async function regenerateComponent() {
+            const button = event.target;
+            const originalText = showLoading(button);
+            const resultDiv = document.getElementById('single-result');
+            const category = document.getElementById('category').value;
+            const feature = document.getElementById('feature').value.trim();
+            
+            if (!feature) {
+                resultDiv.innerHTML = '❌ Please enter a feature name';
+                resultDiv.className = 'result error';
+                hideLoading(button, originalText);
+                return;
+            }
+            
+            resultDiv.innerHTML = `<p>🔄 Regenerating ${category}/${feature} (overwriting existing)...</p>`;
+            
+            try {
+                const response = await fetch('/api/admin/avatar-graphics/regenerate', {
+                    method: 'POST',
+                    headers: {
+                        'x-admin-secret': getAdminSecret(),
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ category, feature })
+                });
+                
+                const result = await response.json();
+                
+                if (result.success) {
+                    resultDiv.innerHTML = `
+                        <h3>🔄 Successfully Regenerated!</h3>
+                        <p><strong>Component:</strong> <span class="highlight">${result.category}/${result.feature}</span></p>
+                        <p><strong>File Path:</strong> ${result.filePath}</p>
+                        <p><strong>SVG Size:</strong> ${result.svgLength} characters</p>
+                        <p><strong>Status:</strong> Overwritten and ready for use</p>
+                    `;
+                    resultDiv.className = 'result success';
+                } else {
+                    resultDiv.innerHTML = `❌ Regeneration failed: ${result.error}`;
+                    resultDiv.className = 'result error';
+                }
+                
+            } catch (error) {
+                resultDiv.innerHTML = `❌ Request failed: ${error.message}`;
+                resultDiv.className = 'result error';
+            } finally {
+                hideLoading(button, originalText);
+            }
+        }
+
+        async function generateAllGraphics() {
+            const button = event.target;
+            const originalText = showLoading(button);
+            const resultDiv = document.getElementById('generate-all-result');
+            
+            if (!confirm('⚠️ This will generate ALL missing avatar graphics using AI. This may take several minutes and use significant API quota. Continue?')) {
+                hideLoading(button, originalText);
+                return;
+            }
+            
+            resultDiv.innerHTML = '<p>🚀 Starting comprehensive avatar graphics generation...</p>';
+            
+            try {
+                const startTime = Date.now();
+                const response = await fetch('/api/admin/avatar-graphics/generate-all', {
+                    method: 'POST',
+                    headers: {
+                        'x-admin-secret': getAdminSecret(),
+                        'Content-Type': 'application/json'
+                    }
+                });
+                
+                const result = await response.json();
+                
+                if (result.success) {
+                    const successCount = result.results.filter(r => r.success).length;
+                    const failedCount = result.results.filter(r => !r.success).length;
+                    
+                    let resultsHtml = `
+                        <h3>🎉 Generation Complete!</h3>
+                        <div class="stats-grid">
+                            <div class="stat-card">
+                                <h3>${successCount}</h3>
+                                <p>Generated</p>
+                            </div>
+                            <div class="stat-card">
+                                <h3>${failedCount}</h3>
+                                <p>Failed</p>
+                            </div>
+                            <div class="stat-card">
+                                <h3>${result.duration}</h3>
+                                <p>Duration</p>
+                            </div>
+                            <div class="stat-card">
+                                <h3>${result.stats.completionPercentage.toFixed(1)}%</h3>
+                                <p>Complete</p>
+                            </div>
+                        </div>
+                    `;
+                    
+                    if (failedCount > 0) {
+                        resultsHtml += `<h4>❌ Failed Items:</h4>`;
+                        const failed = result.results.filter(r => !r.success);
+                        failed.forEach(item => {
+                            resultsHtml += `<p>• ${item.category}/${item.feature}: ${item.error}</p>`;
+                        });
+                    }
+                    
+                    resultsHtml += `
+                        <details style="margin-top: 20px;">
+                            <summary>Full Generation Results</summary>
+                            <pre>${JSON.stringify(result, null, 2)}</pre>
+                        </details>
+                    `;
+                    
+                    resultDiv.innerHTML = resultsHtml;
+                    resultDiv.className = 'result success';
+                } else {
+                    resultDiv.innerHTML = `❌ Generation failed: ${result.error}`;
+                    resultDiv.className = 'result error';
+                }
+                
+            } catch (error) {
+                resultDiv.innerHTML = `❌ Request failed: ${error.message}`;
+                resultDiv.className = 'result error';
+            } finally {
+                hideLoading(button, originalText);
+            }
+        }
+
+        function displayAvailableFeatures(features) {
+            const featuresDiv = document.getElementById('features-display');
+            
+            let featuresHtml = '<h3>🎨 Available Avatar Features</h3>';
+            featuresHtml += '<div class="features-list">';
+            
+            Object.entries(features).forEach(([category, items]) => {
+                featuresHtml += `
+                    <div class="feature-category">
+                        <h4>${category.charAt(0).toUpperCase() + category.slice(1)}</h4>
+                        <div class="feature-count">${items.length}</div>
+                        <p style="font-size: 11px; color: #666; margin-top: 5px;">
+                            ${items.slice(0, 3).join(', ')}${items.length > 3 ? '...' : ''}
+                        </p>
+                    </div>
+                `;
+            });
+            
+            featuresHtml += '</div>';
+            featuresDiv.innerHTML = featuresHtml;
+        }
+
+        // Auto-load stats on page load
+        window.addEventListener('load', () => {
+            // Set a default admin secret if in development
+            const secretInput = document.getElementById('adminSecret');
+            if (window.location.hostname === 'localhost' || window.location.hostname.includes('replit')) {
+                secretInput.value = 'admin123'; // Default for testing
+            }
+        });
+    </script>
+</body>
+</html>

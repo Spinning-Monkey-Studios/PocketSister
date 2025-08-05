@@ -5,8 +5,7 @@ import { useAuth } from "@/hooks/useAuth";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import DailyAffirmations from "./daily-affirmations";
-import MoodTracker from "./mood-tracker";
+// Remove circular import references since this is the daily-affirmations component
 import { useToast } from "@/hooks/use-toast";
 import { Heart, Sparkles, Star, Trophy, BookOpen } from "lucide-react";
 
@@ -40,7 +39,7 @@ export default function DailyAffirmations({ childId }: { childId: string }) {
   const { toast } = useToast();
   const queryClient = useQueryClient();
 
-  const { data: affirmations, isLoading } = useQuery({
+  const { data: affirmations = [], isLoading } = useQuery<DailyAffirmation[]>({
     queryKey: ['/api/daily-affirmations', childId],
     enabled: !!childId && isAuthenticated,
     retry: false,

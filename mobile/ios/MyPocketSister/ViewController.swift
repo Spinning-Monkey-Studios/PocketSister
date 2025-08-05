@@ -1,209 +1,258 @@
 import UIKit
 import WebKit
-import LocalAuthentication
+import CoreLocation
 
-class ViewController: UIViewController, WKNavigationDelegate, WKUIDelegate {
+class ViewController: UIViewController, WKNavigationDelegate, WKUIDelegate, WKScriptMessageHandler, CLLocationManagerDelegate {
     
     @IBOutlet weak var webView: WKWebView!
-    @IBOutlet weak var progressView: UIProgressView!
-    @IBOutlet weak var activityIndicator: UIActivityIndicatorView!
     
-    private let baseURL = "https://my-pocket-sister.replit.app/"
-    private let fallbackURL = "https://mypocketsister.com/"
+    private let locationManager = CLLocationManager()
+    private let appURL = "https://my-pocket-sister.replit.app/"
+    private let apiBaseURL = "https://my-pocket-sister.replit.app/api/parent-messaging"
+    
+    private var deviceId: String = ""
+    private var childId: String = ""
+    private var isLocationTrackingEnabled = false
+    private var trackingInterval: TimeInterval = 30 * 60 // 30 minutes default
+    private var locationTimer: Timer?
     
     override func viewDidLoad() {
         super.viewDidLoad()
+        
+        // Generate unique device ID
+        deviceId = UIDevice.current.identifierForVendor?.uuidString ?? UUID().uuidString
+        
         setupWebView()
-        loadWebApp()
+        setupLocationManager()
     }
     
     private func setupWebView() {
-        // Configure WebView
-        let configuration = WKWebViewConfiguration()
-        configuration.allowsInlineMediaPlayback = true
-        configuration.mediaTypesRequiringUserActionForPlayback = []
-        
-        // Set up user agent
-        let userAgent = "MyPocketSister-Mobile/1.0.0"
-        configuration.applicationNameForUserAgent = userAgent
-        
-        // Configure content controller for JavaScript messaging
         let contentController = WKUserContentController()
-        contentController.add(self, name: "nativeHandler")
-        configuration.userContentController = contentController
         
-        webView.configuration.userContentController = contentController
+        // Add JavaScript message handlers
+        contentController.add(self, name: "requestActivation")
+        contentController.add(self, name: "enableLocationTracking")
+        contentController.add(self, name: "getDeviceId")
+        contentController.add(self, name: "emergencyLocationRequest")
+        
+        let config = WKWebViewConfiguration()
+        config.userContentController = contentController
+        
+        webView = WKWebView(frame: view.bounds, configuration: config)
         webView.navigationDelegate = self
         webView.uiDelegate = self
+        webView.autoresizingMask = [.flexibleWidth, .flexibleHeight]
         
-        // Enable observation of loading progress
-        webView.addObserver(self, forKeyPath: #keyPath(WKWebView.estimatedProgress), options: .new, context: nil)
+        view.addSubview(webView)
         
-        // Configure progress view
-        progressView.progressTintColor = UIColor.systemBlue
-        progressView.trackTintColor = UIColor.clear
-    }
-    
-    private func loadWebApp() {
-        guard let url = URL(string: baseURL) else { return }
-        let request = URLRequest(url: url)
-        webView.load(request)
-    }
-    
-    // MARK: - KVO for Progress
-    override func observeValue(forKeyPath keyPath: String?, of object: Any?, change: [NSKeyValueChangeKey : Any]?, context: UnsafeMutableRawPointer?) {
-        if keyPath == "estimatedProgress" {
-            progressView.progress = Float(webView.estimatedProgress)
-            progressView.isHidden = webView.estimatedProgress >= 1.0
+        if let url = URL(string: appURL) {
+            webView.load(URLRequest(url: url))
         }
+    }
+    
+    private func setupLocationManager() {
+        locationManager.delegate = self
+        locationManager.desiredAccuracy = kCLLocationAccuracyBest
+        locationManager.requestWhenInUseAuthorization()
     }
     
     // MARK: - WKNavigationDelegate
-    func webView(_ webView: WKWebView, didStartProvisionalNavigation navigation: WKNavigation!) {
-        activityIndicator.startAnimating()
-        progressView.isHidden = false
-    }
     
     func webView(_ webView: WKWebView, didFinish navigation: WKNavigation!) {
-        activityIndicator.stopAnimating()
-        progressView.isHidden = true
-    }
-    
-    func webView(_ webView: WKWebView, didFail navigation: WKNavigation!, withError error: Error) {
-        activityIndicator.stopAnimating()
-        progressView.isHidden = true
-        showErrorPage()
-    }
-    
-    func webView(_ webView: WKWebView, decidePolicyFor navigationAction: WKNavigationAction, decisionHandler: @escaping (WKNavigationActionPolicy) -> Void) {
-        
-        guard let url = navigationAction.request.url else {
-            decisionHandler(.allow)
-            return
-        }
-        
-        // Handle external links
-        if !url.absoluteString.hasPrefix(baseURL) && !url.absoluteString.hasPrefix(fallbackURL) {
-            UIApplication.shared.open(url)
-            decisionHandler(.cancel)
-            return
-        }
-        
-        decisionHandler(.allow)
-    }
-    
-    // MARK: - WKUIDelegate
-    func webView(_ webView: WKWebView, runJavaScriptAlertPanelWithMessage message: String, initiatedByFrame frame: WKFrameInfo, completionHandler: @escaping () -> Void) {
-        let alert = UIAlertController(title: "My Pocket Sister", message: message, preferredStyle: .alert)
-        alert.addAction(UIAlertAction(title: "OK", style: .default) { _ in
-            completionHandler()
-        })
-        present(alert, animated: true)
-    }
-    
-    func webView(_ webView: WKWebView, runJavaScriptConfirmPanelWithMessage message: String, initiatedByFrame frame: WKFrameInfo, completionHandler: @escaping (Bool) -> Void) {
-        let alert = UIAlertController(title: "My Pocket Sister", message: message, preferredStyle: .alert)
-        alert.addAction(UIAlertAction(title: "OK", style: .default) { _ in
-            completionHandler(true)
-        })
-        alert.addAction(UIAlertAction(title: "Cancel", style: .cancel) { _ in
-            completionHandler(false)
-        })
-        present(alert, animated: true)
-    }
-    
-    // MARK: - Error Handling
-    private func showErrorPage() {
-        let errorHTML = """
-        <html>
-        <head>
-            <meta name="viewport" content="width=device-width, initial-scale=1.0">
-            <style>
-                body { font-family: -apple-system, BlinkMacSystemFont, sans-serif; text-align: center; padding: 50px; background: #f5f5f5; margin: 0; }
-                .error-container { background: white; border-radius: 12px; padding: 40px 20px; box-shadow: 0 2px 20px rgba(0,0,0,0.1); margin: 20px; }
-                .error-icon { font-size: 64px; margin-bottom: 20px; }
-                h1 { color: #333; margin-bottom: 10px; font-size: 24px; }
-                p { color: #666; margin-bottom: 30px; line-height: 1.5; }
-                .retry-btn { background: #007AFF; color: white; padding: 12px 32px; border: none; border-radius: 8px; font-size: 16px; cursor: pointer; }
-                .retry-btn:active { background: #0056b3; }
-            </style>
-        </head>
-        <body>
-            <div class="error-container">
-                <div class="error-icon">🤖</div>
-                <h1>Connection Error</h1>
-                <p>Unable to connect to My Pocket Sister.<br>Please check your internet connection and try again.</p>
-                <button class="retry-btn" onclick="window.location.reload()">Try Again</button>
-            </div>
-        </body>
-        </html>
+        // Inject device info into web app
+        let appVersion = Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String ?? "1.0.0"
+        let jsCode = """
+            window.deviceInfo = {
+                platform: 'ios',
+                deviceId: '\(deviceId)',
+                appVersion: '\(appVersion)'
+            };
+            window.dispatchEvent(new Event('deviceready'));
         """
-        
-        webView.loadHTMLString(errorHTML, baseURL: nil)
+        webView.evaluateJavaScript(jsCode, completionHandler: nil)
     }
     
-    // MARK: - Biometric Authentication
-    private func authenticateWithBiometrics() {
-        let context = LAContext()
-        var error: NSError?
-        
-        if context.canEvaluatePolicy(.deviceOwnerAuthenticationWithBiometrics, error: &error) {
-            let reason = "Use your biometric authentication to access My Pocket Sister"
+    // MARK: - WKScriptMessageHandler
+    
+    func userContentController(_ userContentController: WKUserContentController, didReceive message: WKScriptMessage) {
+        switch message.name {
+        case "requestActivation":
+            if let childProfileId = message.body as? String {
+                childId = childProfileId
+                requestDeviceActivation()
+            }
             
-            context.evaluatePolicy(.deviceOwnerAuthenticationWithBiometrics, localizedReason: reason) { [weak self] success, authenticationError in
+        case "enableLocationTracking":
+            if let params = message.body as? [String: Any],
+               let enable = params["enable"] as? Bool,
+               let intervalMinutes = params["intervalMinutes"] as? Int {
+                enableLocationTracking(enable: enable, intervalMinutes: intervalMinutes)
+            }
+            
+        case "getDeviceId":
+            webView.evaluateJavaScript("window.receiveDeviceId('\(deviceId)')", completionHandler: nil)
+            
+        case "emergencyLocationRequest":
+            emergencyLocationRequest()
+            
+        default:
+            break
+        }
+    }
+    
+    // MARK: - Location Management
+    
+    private func enableLocationTracking(enable: Bool, intervalMinutes: Int) {
+        isLocationTrackingEnabled = enable
+        trackingInterval = TimeInterval(intervalMinutes * 60)
+        
+        if enable {
+            startLocationTracking()
+        } else {
+            stopLocationTracking()
+        }
+    }
+    
+    private func startLocationTracking() {
+        guard isLocationTrackingEnabled else { return }
+        
+        locationTimer?.invalidate()
+        locationTimer = Timer.scheduledTimer(withTimeInterval: trackingInterval, repeats: true) { _ in
+            self.requestLocationUpdate()
+        }
+        
+        // Get initial location
+        requestLocationUpdate()
+    }
+    
+    private func stopLocationTracking() {
+        locationTimer?.invalidate()
+        locationTimer = nil
+    }
+    
+    private func requestLocationUpdate() {
+        guard CLLocationManager.locationServicesEnabled() else { return }
+        
+        switch locationManager.authorizationStatus {
+        case .authorizedWhenInUse, .authorizedAlways:
+            locationManager.requestLocation()
+        case .notDetermined:
+            locationManager.requestWhenInUseAuthorization()
+        default:
+            break
+        }
+    }
+    
+    private func emergencyLocationRequest() {
+        requestLocationUpdate()
+    }
+    
+    // MARK: - CLLocationManagerDelegate
+    
+    func locationManager(_ manager: CLLocationManager, didUpdateLocations locations: [CLLocation]) {
+        guard let location = locations.last,
+              isLocationTrackingEnabled,
+              !childId.isEmpty else { return }
+        
+        sendLocationToServer(location: location)
+    }
+    
+    func locationManager(_ manager: CLLocationManager, didFailWithError error: Error) {
+        print("Location error: \(error.localizedDescription)")
+    }
+    
+    func locationManager(_ manager: CLLocationManager, didChangeAuthorization status: CLAuthorizationStatus) {
+        switch status {
+        case .authorizedWhenInUse, .authorizedAlways:
+            if isLocationTrackingEnabled {
+                startLocationTracking()
+            }
+        default:
+            stopLocationTracking()
+        }
+    }
+    
+    // MARK: - Network Requests
+    
+    private func sendLocationToServer(location: CLLocation) {
+        guard let url = URL(string: "\(apiBaseURL)/location") else { return }
+        
+        var request = URLRequest(url: url)
+        request.httpMethod = "POST"
+        request.setValue("application/json", forHTTPHeaderField: "Content-Type")
+        request.setValue(deviceId, forHTTPHeaderField: "x-device-id")
+        
+        let locationData: [String: Any] = [
+            "childId": childId,
+            "latitude": location.coordinate.latitude,
+            "longitude": location.coordinate.longitude,
+            "accuracy": location.horizontalAccuracy,
+            "timestamp": Int(location.timestamp.timeIntervalSince1970 * 1000),
+            "batteryLevel": getBatteryLevel()
+        ]
+        
+        do {
+            let jsonData = try JSONSerialization.data(withJSONObject: locationData)
+            request.httpBody = jsonData
+            
+            URLSession.shared.dataTask(with: request) { data, response, error in
+                if let error = error {
+                    print("Location upload error: \(error.localizedDescription)")
+                }
+            }.resume()
+        } catch {
+            print("JSON serialization error: \(error.localizedDescription)")
+        }
+    }
+    
+    private func requestDeviceActivation() {
+        guard let url = URL(string: "\(apiBaseURL)/request-activation") else { return }
+        
+        var request = URLRequest(url: url)
+        request.httpMethod = "POST"
+        request.setValue("application/json", forHTTPHeaderField: "Content-Type")
+        
+        let deviceInfo: [String: Any] = [
+            "platform": "ios",
+            "appVersion": Bundle.main.infoDictionary?["CFBundleShortVersionString"] ?? "1.0.0",
+            "deviceName": UIDevice.current.name
+        ]
+        
+        let requestData: [String: Any] = [
+            "childId": childId,
+            "deviceId": deviceId,
+            "deviceInfo": deviceInfo
+        ]
+        
+        do {
+            let jsonData = try JSONSerialization.data(withJSONObject: requestData)
+            request.httpBody = jsonData
+            
+            URLSession.shared.dataTask(with: request) { data, response, error in
                 DispatchQueue.main.async {
-                    if success {
-                        // Inject success into webview
-                        self?.webView.evaluateJavaScript("window.biometricAuthSuccess && window.biometricAuthSuccess();")
-                    } else {
-                        let alert = UIAlertController(title: "Authentication Failed", 
-                                                    message: authenticationError?.localizedDescription, 
-                                                    preferredStyle: .alert)
-                        alert.addAction(UIAlertAction(title: "OK", style: .default))
-                        self?.present(alert, animated: true)
+                    if error == nil {
+                        // Notify web app of activation request sent
+                        self.webView.evaluateJavaScript(
+                            "window.dispatchEvent(new CustomEvent('activationRequested'));",
+                            completionHandler: nil
+                        )
                     }
                 }
-            }
-        } else {
-            let alert = UIAlertController(title: "Biometric Authentication Unavailable", 
-                                        message: "Your device does not support biometric authentication.", 
-                                        preferredStyle: .alert)
-            alert.addAction(UIAlertAction(title: "OK", style: .default))
-            present(alert, animated: true)
+            }.resume()
+        } catch {
+            print("JSON serialization error: \(error.localizedDescription)")
         }
     }
     
-    deinit {
-        webView.removeObserver(self, forKeyPath: #keyPath(WKWebView.estimatedProgress))
-    }
-}
-
-// MARK: - WKScriptMessageHandler
-extension ViewController: WKScriptMessageHandler {
-    func userContentController(_ userContentController: WKUserContentController, didReceive message: WKScriptMessage) {
-        if message.name == "nativeHandler" {
-            guard let body = message.body as? [String: Any],
-                  let action = body["action"] as? String else { return }
-            
-            switch action {
-            case "requestBiometricAuth":
-                authenticateWithBiometrics()
-            case "showToast":
-                if let text = body["message"] as? String {
-                    showToast(message: text)
-                }
-            default:
-                break
-            }
-        }
-    }
-    
-    private func showToast(message: String) {
-        let alert = UIAlertController(title: nil, message: message, preferredStyle: .alert)
-        present(alert, animated: true)
+    private func getBatteryLevel() -> Int {
+        UIDevice.current.isBatteryMonitoringEnabled = true
+        let batteryLevel = UIDevice.current.batteryLevel
+        UIDevice.current.isBatteryMonitoringEnabled = false
         
-        DispatchQueue.main.asyncAfter(deadline: .now() + 2.0) {
-            alert.dismiss(animated: true)
+        if batteryLevel < 0 {
+            return 100 // Battery level unavailable
         }
+        
+        return Int(batteryLevel * 100)
     }
 }

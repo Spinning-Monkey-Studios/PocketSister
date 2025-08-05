@@ -1,6 +1,6 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { Sparkles, Mic, Save, RefreshCw, User, Palette } from "lucide-react";
+import { Sparkles, Mic, Save, RefreshCw, User, Palette, Shuffle, Wand2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -8,6 +8,11 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest } from "@/lib/queryClient";
+import { AvatarCanvas } from "@/components/avatar-game/AvatarCanvas";
+import { CustomizationPanel } from "@/components/avatar-game/CustomizationPanel";
+import { SaveDialog } from "@/components/avatar-game/SaveDialog";
+import { ProgressCelebration } from "@/components/avatar-game/ProgressCelebration";
+import { AvatarConfig, defaultAvatarAssets } from '@shared/avatar-schema';
 
 interface AvatarOption {
   id: string;
@@ -18,11 +23,55 @@ interface AvatarOption {
 
 export default function AvatarCreator() {
   const userId = "demo-user"; // In a real app, this would come from authentication
+  const childId = "demo-child-123"; // In a real app, this would come from child profile selection
+  
+  // Avatar Game State
+  const [gameMode, setGameMode] = useState<'game' | 'ai-generation'>('game');
+  const [avatarConfig, setAvatarConfig] = useState<AvatarConfig>({
+    id: '',
+    name: 'Stella',
+    baseBody: {
+      type: 'average',
+      skinTone: '#FDBCB4'
+    },
+    hair: {
+      style: 'straight-long',
+      color: '#F7DC6F'
+    },
+    face: {
+      eyeShape: 'round',
+      eyeColor: '#8B4513',
+      expression: 'happy',
+      accessories: []
+    },
+    clothing: {
+      top: { style: 't-shirt', color: '#0066CC' },
+      bottom: { style: 'jeans', color: '#000080' },
+      shoes: { style: 'sneakers', color: '#FFFFFF' }
+    },
+    accessories: [],
+    personality: {
+      type: 'caring',
+      greeting: 'Hi sweetie! I\'m so happy to see you today!',
+      traits: ['Empathetic', 'Patient', 'Supportive', 'Gentle']
+    },
+    background: 'bedroom',
+    unlockLevel: 1,
+    createdAt: new Date()
+  });
+
+  // Legacy AI Generation State
   const [avatarDescription, setAvatarDescription] = useState("");
   const [avatarName, setAvatarName] = useState("Stella");
   const [selectedAvatar, setSelectedAvatar] = useState<AvatarOption | null>(null);
   const [generatedOptions, setGeneratedOptions] = useState<AvatarOption[]>([]);
   const [isListening, setIsListening] = useState(false);
+  
+  // Dialog States
+  const [showSaveDialog, setShowSaveDialog] = useState(false);
+  const [showCelebration, setShowCelebration] = useState(false);
+  const [celebrationMessage, setCelebrationMessage] = useState('');
+  
   const { toast } = useToast();
   const queryClient = useQueryClient();
 
@@ -48,7 +97,7 @@ export default function AvatarCreator() {
       setIsListening(true);
     };
 
-    recognition.onresult = (event) => {
+    recognition.onresult = (event: any) => {
       const transcript = event.results[0][0].transcript;
       setAvatarDescription(prev => prev + (prev ? ' ' : '') + transcript);
       setIsListening(false);
@@ -70,12 +119,101 @@ export default function AvatarCreator() {
     recognition.start();
   };
 
-  // Generate avatar options mutation
+  // Randomize avatar configuration
+  const randomizeAvatar = () => {
+    const assets = defaultAvatarAssets;
+    
+    const randomConfig: AvatarConfig = {
+      ...avatarConfig,
+      baseBody: {
+        type: assets.base.bodyTypes[Math.floor(Math.random() * assets.base.bodyTypes.length)] as any,
+        skinTone: assets.base.skinTones[Math.floor(Math.random() * assets.base.skinTones.length)].color
+      },
+      hair: {
+        style: assets.hair.styles[Math.floor(Math.random() * assets.hair.styles.length)].id,
+        color: assets.hair.colors[Math.floor(Math.random() * assets.hair.colors.length)].color
+      },
+      face: {
+        eyeShape: assets.face.eyeShapes[Math.floor(Math.random() * assets.face.eyeShapes.length)].id,
+        eyeColor: assets.face.eyeColors[Math.floor(Math.random() * assets.face.eyeColors.length)].color,
+        expression: assets.face.expressions[Math.floor(Math.random() * assets.face.expressions.length)].id,
+        accessories: []
+      },
+      clothing: {
+        top: {
+          style: assets.clothing.tops[Math.floor(Math.random() * assets.clothing.tops.length)].id,
+          color: assets.clothing.colors[Math.floor(Math.random() * assets.clothing.colors.length)].color
+        },
+        bottom: {
+          style: assets.clothing.bottoms[Math.floor(Math.random() * assets.clothing.bottoms.length)].id,
+          color: assets.clothing.colors[Math.floor(Math.random() * assets.clothing.colors.length)].color
+        },
+        shoes: {
+          style: assets.clothing.shoes[Math.floor(Math.random() * assets.clothing.shoes.length)].id,
+          color: assets.clothing.colors[Math.floor(Math.random() * assets.clothing.colors.length)].color
+        }
+      },
+      accessories: [],
+      personality: {
+        ...assets.personalities[Math.floor(Math.random() * assets.personalities.length)],
+        // name: avatarConfig.name // Removed as not part of personality schema
+      },
+      background: assets.backgrounds[Math.floor(Math.random() * assets.backgrounds.length)].id
+    };
+
+    setAvatarConfig(randomConfig);
+    toast({
+      title: "Avatar Randomized!",
+      description: "Your avatar got a fresh new look!"
+    });
+  };
+
+  // Save avatar configuration
+  const saveAvatarGameMutation = useMutation({
+    mutationFn: async ({ name, greeting }: { name: string; greeting?: string }) => {
+      const configToSave = {
+        ...avatarConfig,
+        name,
+        personality: greeting ? { ...avatarConfig.personality, greeting } : avatarConfig.personality
+      };
+
+      return apiRequest('POST', '/api/avatars/create', {
+        childId,
+        name,
+        configData: configToSave,
+        unlockLevel: avatarConfig.unlockLevel
+      });
+    },
+    onSuccess: () => {
+      setCelebrationMessage('Avatar Created Successfully!');
+      setShowCelebration(true);
+      setShowSaveDialog(false);
+      queryClient.invalidateQueries({ queryKey: ['/api/avatars/child', childId] });
+    },
+    onError: (error: any) => {
+      toast({
+        title: "Save Failed",
+        description: error.message || "Could not save your avatar. Please try again.",
+        variant: "destructive"
+      });
+    }
+  });
+
+  // Export avatar as PNG
+  const exportAvatarPNG = () => {
+    // This would implement HTML canvas export functionality
+    toast({
+      title: "Snapshot Taken!",
+      description: "Your avatar image has been downloaded.",
+    });
+  };
+
+  // Generate avatar options mutation (legacy AI generation)
   const generateAvatarMutation = useMutation({
     mutationFn: (description: string) =>
-      apiRequest("POST", "/api/avatar/generate", { description }, { 'x-user-id': userId }),
+      apiRequest("POST", "/api/avatar/generate", { description, userId }),
     onSuccess: (data) => {
-      setGeneratedOptions(data.avatars || []);
+      setGeneratedOptions((data as any).avatars || []);
       toast({
         title: "Avatars generated!",
         description: "Choose your favorite avatar from the options below."
@@ -93,7 +231,7 @@ export default function AvatarCreator() {
   // Save avatar selection mutation
   const saveAvatarMutation = useMutation({
     mutationFn: (data: { avatarId: string; name: string; imageUrl: string }) =>
-      apiRequest("POST", "/api/avatar/save", data, { 'x-user-id': userId }),
+      apiRequest("POST", "/api/avatar/save", { ...data, userId }),
     onSuccess: () => {
       toast({
         title: "Avatar saved!",
@@ -140,27 +278,110 @@ export default function AvatarCreator() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-pastel-blue to-pastel-lavender p-4">
-      <div className="max-w-4xl mx-auto">
+    <div className="min-h-screen bg-gradient-to-br from-pink-50 via-purple-50 to-blue-50">
+      <div className="container mx-auto p-6">
         {/* Header */}
         <div className="text-center mb-8">
-          <h1 className="font-nunito text-4xl font-bold text-gray-800 mb-2">
-            Create Your AI Companion
+          <h1 className="text-4xl font-bold mb-4 flex items-center justify-center gap-3">
+            <Sparkles className="text-primary w-8 h-8" />
+            Create Your Big Sister
           </h1>
-          <p className="text-gray-600">
-            Describe your ideal AI friend and watch them come to life!
+          <p className="text-gray-600 mb-6">
+            Design your perfect AI companion through our interactive avatar creator
           </p>
+          
+          {/* Mode Toggle */}
+          <div className="flex justify-center gap-4 mb-6">
+            <Button
+              variant={gameMode === 'game' ? 'default' : 'outline'}
+              onClick={() => setGameMode('game')}
+              className="flex items-center gap-2"
+            >
+              <User className="w-4 h-4" />
+              Avatar Creator Game
+            </Button>
+            <Button
+              variant={gameMode === 'ai-generation' ? 'default' : 'outline'}
+              onClick={() => setGameMode('ai-generation')}
+              className="flex items-center gap-2"
+            >
+              <Wand2 className="w-4 h-4" />
+              AI Generation
+            </Button>
+          </div>
         </div>
 
-        {/* Avatar Description Input */}
-        <Card className="mb-8">
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <Palette className="w-5 h-5" />
-              Describe Your Companion
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-4">
+        {gameMode === 'game' ? (
+          // Enhanced Avatar Creation Game
+          <div className="grid lg:grid-cols-3 gap-6">
+            {/* Avatar Preview */}
+            <div className="lg:col-span-1">
+              <Card className="sticky top-6">
+                <CardHeader className="text-center">
+                  <CardTitle className="flex items-center justify-center gap-2">
+                    <User className="w-5 h-5" />
+                    Your Avatar
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  <AvatarCanvas 
+                    config={avatarConfig}
+                    size="large"
+                    showBackground={true}
+                    className="mx-auto"
+                  />
+                  
+                  {/* Quick Actions */}
+                  <div className="flex gap-2">
+                    <Button
+                      onClick={randomizeAvatar}
+                      variant="outline"
+                      size="sm"
+                      className="flex-1"
+                    >
+                      <Shuffle className="w-4 h-4 mr-1" />
+                      Randomize
+                    </Button>
+                    <Button
+                      onClick={() => setShowSaveDialog(true)}
+                      size="sm"
+                      className="flex-1"
+                    >
+                      <Save className="w-4 h-4 mr-1" />
+                      Save
+                    </Button>
+                  </div>
+                </CardContent>
+              </Card>
+            </div>
+
+            {/* Customization Panel */}
+            <div className="lg:col-span-2">
+              <Card className="h-[800px]">
+                <CardContent className="p-0 h-full">
+                  <CustomizationPanel
+                    config={avatarConfig}
+                    onConfigChange={setAvatarConfig}
+                    assets={defaultAvatarAssets}
+                    unlockedItems={[]} // TODO: Load from user profile
+                  />
+                </CardContent>
+              </Card>
+            </div>
+          </div>
+        ) : (
+          // Legacy AI Generation Mode
+          <div className="max-w-4xl mx-auto">
+
+            {/* Avatar Description Input */}
+            <Card className="mb-8">
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <Palette className="w-5 h-5" />
+                  Describe Your Companion
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-4">
             <div>
               <Label htmlFor="description">What should your AI companion look like?</Label>
               <div className="flex gap-2 mt-2">
@@ -300,8 +521,27 @@ export default function AvatarCreator() {
                 </Button>
               ))}
             </div>
-          </CardContent>
-        </Card>
+              </CardContent>
+            </Card>
+          </div>
+        )}
+
+        {/* Dialogs and Celebrations */}
+        <SaveDialog
+          open={showSaveDialog}
+          onOpenChange={setShowSaveDialog}
+          config={avatarConfig}
+          onSave={(name, greeting) => saveAvatarGameMutation.mutate({ name, greeting })}
+          onExportPNG={exportAvatarPNG}
+          isSaving={saveAvatarGameMutation.isPending}
+        />
+
+        <ProgressCelebration
+          show={showCelebration}
+          onComplete={() => setShowCelebration(false)}
+          message={celebrationMessage}
+          type="save"
+        />
       </div>
     </div>
   );

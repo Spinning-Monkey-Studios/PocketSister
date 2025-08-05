@@ -2,7 +2,7 @@ import nodemailer from 'nodemailer';
 
 // Create SMTP transporter for Bluehost
 const createTransporter = () => {
-  return nodemailer.createTransporter({
+  return nodemailer.createTransport({
     host: 'mail.mypocketsister.com', // Your Bluehost domain
     port: 587, // Standard SMTP port
     secure: false, // Use STARTTLS

@@ -1,0 +1,468 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Avatar Analysis & Settings System Test</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+            line-height: 1.6;
+        }
+        
+        .test-section {
+            background: #f8f9fa;
+            border: 1px solid #e9ecef;
+            border-radius: 8px;
+            padding: 20px;
+            margin: 20px 0;
+        }
+        
+        .button {
+            background: #007bff;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            margin: 5px;
+        }
+        
+        .button:hover {
+            background: #0056b3;
+        }
+        
+        .button.creative {
+            background: #e91e63;
+        }
+        
+        .button.settings {
+            background: #ff9800;
+        }
+        
+        .result {
+            background: white;
+            border: 1px solid #dee2e6;
+            border-radius: 4px;
+            padding: 15px;
+            margin: 10px 0;
+            white-space: pre-wrap;
+            font-family: monospace;
+        }
+        
+        .success {
+            color: #155724;
+            background: #d4edda;
+            border-color: #c3e6cb;
+        }
+        
+        .info {
+            color: #0c5460;
+            background: #d1ecf1;
+            border-color: #bee5eb;
+        }
+        
+        .warning {
+            color: #856404;
+            background: #fff3cd;
+            border-color: #ffeaa7;
+        }
+        
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 20px;
+        }
+
+        .chat-demo {
+            background: #f8f9fa;
+            border: 1px solid #dee2e6;
+            border-radius: 8px;
+            padding: 15px;
+            margin: 10px 0;
+            max-height: 400px;
+            overflow-y: auto;
+        }
+
+        .message {
+            margin: 10px 0;
+            padding: 8px 12px;
+            border-radius: 12px;
+            max-width: 80%;
+        }
+
+        .user-message {
+            background: #007bff;
+            color: white;
+            margin-left: auto;
+        }
+
+        .ai-message {
+            background: #e9ecef;
+            color: #343a40;
+        }
+
+        .avatar-preview {
+            background: white;
+            border: 2px solid #dee2e6;
+            border-radius: 12px;
+            padding: 20px;
+            text-align: center;
+            margin: 15px 0;
+        }
+
+        .avatar-name {
+            font-size: 18px;
+            font-weight: bold;
+            color: #343a40;
+            margin-bottom: 10px;
+        }
+
+        .avatar-details {
+            color: #6c757d;
+            font-size: 14px;
+            margin: 5px 0;
+        }
+
+        .analysis-section {
+            background: #f8f9fa;
+            border-left: 4px solid #007bff;
+            padding: 15px;
+            margin: 10px 0;
+        }
+
+        .analysis-title {
+            font-weight: bold;
+            color: #007bff;
+            margin-bottom: 8px;
+        }
+
+        .settings-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 15px;
+            margin: 15px 0;
+        }
+
+        .setting-card {
+            background: white;
+            border: 1px solid #dee2e6;
+            border-radius: 8px;
+            padding: 15px;
+        }
+
+        .setting-name {
+            font-weight: bold;
+            color: #343a40;
+            margin-bottom: 8px;
+        }
+
+        .setting-value {
+            color: #6c757d;
+            font-size: 14px;
+        }
+    </style>
+</head>
+<body>
+    <h1>🎭 Avatar Analysis & Settings Intelligence System</h1>
+    
+    <div class="test-section">
+        <h2>🎨 System Overview</h2>
+        <p>Stella can now analyze avatars and provide personalized feedback, plus intelligently guide users through all app settings and preferences. This creates a more engaging and supportive experience.</p>
+        <div class="info result">
+New Intelligence Capabilities:
+✓ Avatar analysis with personalized feedback
+✓ Comprehensive settings knowledge and guidance
+✓ Creative encouragement and style suggestions
+✓ Settings update assistance and instructions
+✓ Integration with AI chat for natural interactions
+        </div>
+    </div>
+
+    <div class="grid">
+        <div class="test-section">
+            <h2>🎭 Avatar Analysis Testing</h2>
+            <button class="button creative" onclick="testAvatarAnalysis('demo-child-1')">Analyze Test Avatar</button>
+            <button class="button creative" onclick="testAvatarAnalysisNotFound('no-avatar-child')">Test No Avatar</button>
+            <button class="button" onclick="simulateAvatarChat()">Simulate Avatar Chat</button>
+            <div id="avatarResult" class="result" style="display: none;"></div>
+        </div>
+
+        <div class="test-section">
+            <h2>⚙️ Settings Management Testing</h2>
+            <button class="button settings" onclick="testGetSettings('demo-child-1')">Get All Settings</button>
+            <button class="button settings" onclick="testGetSettings('demo-child-1', 'communication')">Communication Settings</button>
+            <button class="button settings" onclick="testUpdateSetting('demo-child-1', 'communication_style', 'encouraging')">Update Communication Style</button>
+            <div id="settingsResult" class="result" style="display: none;"></div>
+        </div>
+
+        <div class="test-section">
+            <h2>💬 AI Chat Integration Testing</h2>
+            <button class="button" onclick="simulateAvatarQuestion()">Ask About Avatar</button>
+            <button class="button" onclick="simulateSettingsQuestion()">Ask About Settings</button>
+            <button class="button" onclick="simulatePersonalizationQuestion()">Ask About Personalization</button>
+            <div class="chat-demo" id="chatDemo">
+                <div class="message ai-message">Hi! I'm Stella! Ask me about your avatar or settings - I love helping you personalize your experience! ✨</div>
+            </div>
+        </div>
+    </div>
+
+    <div class="test-section">
+        <h2>🎨 Avatar Analysis Demonstration</h2>
+        <p>This shows how Stella analyzes and provides feedback on avatar designs:</p>
+        
+        <div class="avatar-preview">
+            <div class="avatar-name">Luna the Creative Explorer</div>
+            <div class="avatar-details">Created: 2 days ago | Unlock Level: 3</div>
+            <div class="avatar-details">Personality: Playful | Style: Colorful and Fun</div>
+        </div>
+
+        <div class="analysis-section">
+            <div class="analysis-title">Stella's Analysis:</div>
+            <div>Luna is absolutely amazing! I love how you chose such vibrant colors and a playful personality - it really shows your creative spirit! Your purple wavy hair and bright yellow top work so well together. You have a great eye for color combinations!</div>
+        </div>
+
+        <button class="button creative" onclick="generateSampleAnalysis()">Generate Sample Analysis</button>
+        <div id="sampleAnalysisResult" style="display: none;"></div>
+    </div>
+
+    <div class="test-section">
+        <h2>⚙️ Settings Knowledge Demonstration</h2>
+        <p>Stella understands all app settings and can guide users:</p>
+        
+        <div class="settings-grid">
+            <div class="setting-card">
+                <div class="setting-name">Communication Style</div>
+                <div class="setting-value">Current: Friendly & Encouraging</div>
+            </div>
+            <div class="setting-card">
+                <div class="setting-name">Daily Affirmations</div>
+                <div class="setting-value">Current: Enabled (1 per day)</div>
+            </div>
+            <div class="setting-card">
+                <div class="setting-name">Notification Preferences</div>
+                <div class="setting-value">Current: Daily, Quiet Hours 9 PM - 7 AM</div>
+            </div>
+            <div class="setting-card">
+                <div class="setting-name">Privacy Level</div>
+                <div class="setting-value">Current: Standard</div>
+            </div>
+        </div>
+
+        <button class="button settings" onclick="demonstrateSettingsGuidance()">Show Settings Guidance</button>
+        <div id="settingsGuidanceResult" style="display: none;"></div>
+    </div>
+
+    <script>
+        const TEST_CHILD_ID = 'demo-child-1';
+
+        function showResult(elementId, content, type = 'info') {
+            const element = document.getElementById(elementId);
+            element.className = `result ${type}`;
+            element.textContent = content;
+            element.style.display = 'block';
+        }
+
+        function formatJsonResult(elementId, data, type = 'info') {
+            const element = document.getElementById(elementId);
+            element.className = `result ${type}`;
+            element.textContent = JSON.stringify(data, null, 2);
+            element.style.display = 'block';
+        }
+
+        async function apiCall(endpoint, method = 'GET', data = null) {
+            try {
+                const options = {
+                    method,
+                    headers: { 'Content-Type': 'application/json' }
+                };
+                
+                if (data) {
+                    options.body = JSON.stringify(data);
+                }
+
+                const response = await fetch(endpoint, options);
+                const result = await response.json();
+                
+                return {
+                    success: response.ok,
+                    status: response.status,
+                    data: result
+                };
+            } catch (error) {
+                return {
+                    success: false,
+                    error: error.message
+                };
+            }
+        }
+
+        // Avatar Analysis Testing
+        async function testAvatarAnalysis(childId) {
+            showResult('avatarResult', `Analyzing avatar for child ${childId}...`, 'info');
+            const result = await apiCall(`/api/avatar/analyze/${childId}`);
+            
+            if (result.success) {
+                formatJsonResult('avatarResult', result.data, 'success');
+            } else {
+                formatJsonResult('avatarResult', result.data, 'warning');
+            }
+        }
+
+        async function testAvatarAnalysisNotFound(childId) {
+            showResult('avatarResult', `Testing no avatar scenario for ${childId}...`, 'warning');
+            const result = await apiCall(`/api/avatar/analyze/${childId}`);
+            
+            formatJsonResult('avatarResult', result.data, result.success ? 'success' : 'warning');
+        }
+
+        // Settings Management Testing
+        async function testGetSettings(childId, category = null) {
+            const endpoint = category ? `/api/settings/${childId}?category=${category}` : `/api/settings/${childId}`;
+            showResult('settingsResult', `Getting settings for child ${childId}${category ? ` (${category})` : ''}...`, 'info');
+            
+            const result = await apiCall(endpoint);
+            
+            if (result.success) {
+                formatJsonResult('settingsResult', result.data, 'success');
+            } else {
+                formatJsonResult('settingsResult', result.data, 'warning');
+            }
+        }
+
+        async function testUpdateSetting(childId, settingType, newValue) {
+            showResult('settingsResult', `Updating ${settingType} to ${newValue}...`, 'info');
+            const result = await apiCall(`/api/settings/${childId}/update`, 'POST', {
+                settingType,
+                newValue
+            });
+            
+            if (result.success) {
+                formatJsonResult('settingsResult', result.data, 'success');
+            } else {
+                formatJsonResult('settingsResult', result.data, 'warning');
+            }
+        }
+
+        // Chat Simulation Functions
+        function addMessage(text, isUser = false) {
+            const chatDemo = document.getElementById('chatDemo');
+            const messageDiv = document.createElement('div');
+            messageDiv.className = `message ${isUser ? 'user-message' : 'ai-message'}`;
+            messageDiv.textContent = text;
+            chatDemo.appendChild(messageDiv);
+            chatDemo.scrollTop = chatDemo.scrollHeight;
+        }
+
+        async function simulateAvatarChat() {
+            addMessage("Can you tell me what you think about my avatar?", true);
+            
+            // Simulate thinking
+            addMessage("Let me take a look at your avatar! 🎭");
+            
+            setTimeout(() => {
+                addMessage("Wow! Your avatar is absolutely wonderful! I love the creative choices you made - the vibrant colors and playful personality really show your artistic spirit. The way you combined your hair color with your outfit shows you have a great eye for style. Have you thought about trying some new accessories as you unlock more items? Your avatar is uniquely you and I think it's fantastic!");
+            }, 1500);
+        }
+
+        async function simulateAvatarQuestion() {
+            addMessage("What do you think of my avatar? Do you like it?", true);
+            
+            addMessage("I love analyzing avatars! Let me look at yours...");
+            
+            setTimeout(() => {
+                addMessage("Your avatar is absolutely amazing! I can see so much of your personality in the design choices you made. The way you styled the hair and picked those colors shows you're really creative. Your avatar has such a fun, friendly energy - just like you! Is there anything specific about your avatar you'd like to change or improve?");
+            }, 2000);
+        }
+
+        async function simulateSettingsQuestion() {
+            addMessage("How can I change my notification settings?", true);
+            
+            addMessage("I'd be happy to help you with your notification settings! 📱");
+            
+            setTimeout(() => {
+                addMessage("You can update your notification preferences in a few ways! Go to Settings > Notifications where you can:\n\n• Turn daily affirmations on or off\n• Set your quiet hours (when you don't want notifications)\n• Choose how often you get chat reminders\n• Customize goal reminder frequency\n\nRight now you have daily affirmations enabled with quiet hours from 9 PM to 7 AM. Would you like me to help you understand any specific notification setting?");
+            }, 2000);
+        }
+
+        async function simulatePersonalizationQuestion() {
+            addMessage("Can you help me personalize how you talk to me?", true);
+            
+            addMessage("Absolutely! I love helping you make our conversations perfect for you! ✨");
+            
+            setTimeout(() => {
+                addMessage("I can be personalized in so many ways! You can adjust:\n\n• **Communication Style**: Choose from friendly, encouraging, casual, or supportive\n• **Conversation Topics**: Pick what subjects you're most interested in\n• **Formality Level**: Decide if you want me to be more casual or formal\n• **Response Length**: Short and sweet or more detailed explanations\n\nYou can change these in your Profile Settings under 'Communication Preferences'. What kind of communication style feels most comfortable for you?");
+            }, 2000);
+        }
+
+        // Demonstration Functions
+        function generateSampleAnalysis() {
+            const sampleAnalyses = [
+                {
+                    name: "Starlight Dreamer",
+                    analysis: "Starlight Dreamer is absolutely beautiful! The soft pastel colors and wise personality create such a peaceful, thoughtful presence. Your choice of silver hair with the light blue outfit shows you appreciate elegant, calming aesthetics. The background complements everything perfectly!"
+                },
+                {
+                    name: "Rainbow Explorer", 
+                    analysis: "Rainbow Explorer is so vibrant and full of energy! The bright, bold colors and energetic personality really shine through. You're not afraid to experiment with different looks, and the mix of patterns shows your creative confidence. I love how adventurous your style is!"
+                },
+                {
+                    name: "Gentle Guardian",
+                    analysis: "Gentle Guardian has such a warm, caring presence! The earthy tones and caring personality create a sense of comfort and safety. Your thoughtful accessory choices and the natural background show you value harmony and kindness. It's clear you put a lot of heart into this design!"
+                }
+            ];
+            
+            const randomAnalysis = sampleAnalyses[Math.floor(Math.random() * sampleAnalyses.length)];
+            
+            const resultDiv = document.getElementById('sampleAnalysisResult');
+            resultDiv.innerHTML = `
+                <div class="avatar-preview">
+                    <div class="avatar-name">${randomAnalysis.name}</div>
+                    <div class="avatar-details">AI-Generated Sample Analysis</div>
+                </div>
+                <div class="analysis-section">
+                    <div class="analysis-title">Stella's Feedback:</div>
+                    <div>${randomAnalysis.analysis}</div>
+                </div>
+            `;
+            resultDiv.style.display = 'block';
+        }
+
+        function demonstrateSettingsGuidance() {
+            const guidanceExamples = [
+                {
+                    setting: "Communication Style",
+                    guidance: "I can adjust how I talk with you! If you want me to be more encouraging, I'll focus on motivation and positive reinforcement. For a casual style, I'll use relaxed language like talking to a friend. You can change this anytime in Settings > Communication Preferences."
+                },
+                {
+                    setting: "Notification Preferences", 
+                    guidance: "You're in control of when you hear from me! You can set quiet hours so I won't send notifications when you're sleeping or busy. Daily affirmations can be turned on or off, and you can choose how often you get gentle reminders to chat. Find these options in Settings > Notifications."
+                },
+                {
+                    setting: "Privacy & Safety",
+                    guidance: "Your privacy is super important! You can choose how much information gets shared, whether parents see insights about our conversations, and if your chats get saved for future reference. I'll always respect your choices! Update these in Settings > Privacy & Safety."
+                }
+            ];
+            
+            const randomGuidance = guidanceExamples[Math.floor(Math.random() * guidanceExamples.length)];
+            
+            const resultDiv = document.getElementById('settingsGuidanceResult');
+            resultDiv.innerHTML = `
+                <div class="analysis-section">
+                    <div class="analysis-title">About ${randomGuidance.setting}:</div>
+                    <div>${randomGuidance.guidance}</div>
+                </div>
+            `;
+            resultDiv.style.display = 'block';
+        }
+
+        // Auto-load avatar analysis demo on page load
+        window.addEventListener('load', () => {
+            testAvatarAnalysis(TEST_CHILD_ID);
+        });
+    </script>
+</body>
+</html>

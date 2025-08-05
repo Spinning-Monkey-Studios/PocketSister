@@ -42,7 +42,7 @@ export default function NotificationCenter() {
   });
 
   // Fetch notification preferences
-  const { data: preferences = {}, isLoading: preferencesLoading } = useQuery<NotificationPreferences>({
+  const { data: preferences = {} as NotificationPreferences, isLoading: preferencesLoading } = useQuery<NotificationPreferences>({
     queryKey: ["/api/notifications/preferences"],
   });
 

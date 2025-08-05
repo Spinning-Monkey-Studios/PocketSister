@@ -1,173 +1,438 @@
-// AI Provider abstraction layer - supports multiple AI services
-import OpenAI from "openai";
-import { GoogleGenAI } from "@google/genai";
+import { storage } from './storage';
 
-export type AIProvider = 'openai' | 'gemini' | 'claude-proxy';
-
-interface AIResponse {
-  content: string;
-  tokensUsed: number;
+// Abstract AI Provider Interface
+export interface AIProvider {
+  id: string;
+  name: string;
+  initialize(config: AIProviderConfig): Promise<void>;
+  chat(request: ChatRequest): Promise<ChatResponse>;
+  analyzeAvatar(request: AvatarAnalysisRequest): Promise<AnalysisResponse>;
+  getContextualHelp(request: HelpRequest): Promise<HelpResponse>;
+  supportsFunctionCalling(): boolean;
+  supportsContextCaching(): boolean;
+  getCapabilities(): AIProviderCapabilities;
 }
 
-interface AIConfig {
-  provider: AIProvider;
-  apiKey?: string;
-  model?: string;
-}
-
-// Default configuration - uses the same AI that powers this assistant
-const DEFAULT_CONFIG: AIConfig = {
-  provider: 'claude-proxy',
-  model: 'claude-3-sonnet'
-};
-
-// Claude Proxy - uses the same AI assistant for responses (no API key needed)
-async function generateClaudeProxyResponse(prompt: string, context?: any): Promise<AIResponse> {
-  // Simple rule-based responses that simulate a caring AI companion
-  const responses = {
-    greeting: [
-      "Hi there! I'm so happy to chat with you today! How are you feeling?",
-      "Hello! I've been thinking about you. What's on your mind today?",
-      "Hey! I'm here for you. What would you like to talk about?"
-    ],
-    encouragement: [
-      "You're doing amazing! I believe in you and all the wonderful things you can achieve.",
-      "Remember, every small step counts. You're stronger than you know!",
-      "I'm so proud of how you're growing and learning. Keep being awesome!"
-    ],
-    friendship: [
-      "Friends are so important! Tell me about someone who makes you smile.",
-      "Good friendships are like flowers - they need care and kindness to grow.",
-      "Having good friends means being a good friend too. You seem like a wonderful friend!"
-    ],
-    school: [
-      "School can be tough sometimes, but you're learning so much! What's your favorite subject?",
-      "Every challenge at school is helping you become smarter and stronger.",
-      "I'm here to help you with any school worries. You've got this!"
-    ],
-    general: [
-      "That's interesting! Tell me more about what you're thinking.",
-      "I'm here to listen and support you. How can I help today?",
-      "You always have such thoughtful things to share. I love chatting with you!"
-    ]
+// Configuration Types
+export interface AIProviderConfig {
+  id: string;
+  name: string;
+  provider: 'google' | 'openai' | 'anthropic' | 'custom';
+  endpoint: string;
+  apiKey: string;
+  model: string;
+  isActive: boolean;
+  priority: number;
+  costPerToken: number;
+  rateLimit: {
+    requestsPerMinute: number;
+    tokensPerMinute: number;
   };
+  capabilities: AIProviderCapabilities;
+  configuration: {
+    temperature: number;
+    maxTokens: number;
+    systemInstructions: string;
+  };
+}
 
-  // Simple keyword matching to determine response category
-  const lowerPrompt = prompt.toLowerCase();
-  let category: keyof typeof responses = 'general';
-  
-  if (lowerPrompt.includes('hi') || lowerPrompt.includes('hello') || lowerPrompt.includes('hey')) {
-    category = 'greeting';
-  } else if (lowerPrompt.includes('sad') || lowerPrompt.includes('worried') || lowerPrompt.includes('scared')) {
-    category = 'encouragement';
-  } else if (lowerPrompt.includes('friend') || lowerPrompt.includes('social')) {
-    category = 'friendship';
-  } else if (lowerPrompt.includes('school') || lowerPrompt.includes('homework') || lowerPrompt.includes('teacher')) {
-    category = 'school';
+export interface AIProviderCapabilities {
+  chat: boolean;
+  contextCaching: boolean;
+  functionCalling: boolean;
+  imageAnalysis: boolean;
+  voiceSynthesis: boolean;
+  streamingResponse: boolean;
+  batchProcessing: boolean;
+}
+
+// Request/Response Types
+export interface ChatRequest {
+  childId: string;
+  message: string;
+  context?: any;
+  sessionId?: string;
+  features?: string[];
+}
+
+export interface ChatResponse {
+  response: string;
+  usage: {
+    inputTokens: number;
+    outputTokens: number;
+    totalTokens: number;
+  };
+  provider: string;
+  processingTime: number;
+  cached?: boolean;
+}
+
+export interface AvatarAnalysisRequest {
+  childId: string;
+  avatarId?: string;
+}
+
+export interface AnalysisResponse {
+  analysis: {
+    overall: string;
+    personality: string;
+    style: string;
+    creativity: string;
+    suggestions: string[];
+  };
+  usage: TokenUsage;
+}
+
+export interface HelpRequest {
+  query: string;
+  childId?: string;
+}
+
+export interface HelpResponse {
+  helpText: string;
+  features: any[];
+  upgradeOptions: any[];
+  usage: TokenUsage;
+}
+
+export interface TokenUsage {
+  inputTokens: number;
+  outputTokens: number;
+  totalTokens: number;
+}
+
+// AI Provider Manager
+export class AIProviderManager {
+  private providers: Map<string, AIProvider> = new Map();
+  private activeProviderId: string = 'gemini-default';
+  private fallbackProviders: string[] = [];
+
+  async initialize(): Promise<void> {
+    // Load provider configurations from database
+    const configs = await this.loadProviderConfigs();
+    
+    for (const config of configs) {
+      if (config.isActive) {
+        const provider = this.createProvider(config);
+        await provider.initialize(config);
+        this.providers.set(config.id, provider);
+        
+        if (config.priority === 1) {
+          this.activeProviderId = config.id;
+        } else {
+          this.fallbackProviders.push(config.id);
+        }
+      }
+    }
   }
 
-  const categoryResponses = responses[category];
-  const response = categoryResponses[Math.floor(Math.random() * categoryResponses.length)];
-  
-  return {
-    content: response,
-    tokensUsed: Math.ceil(response.length / 4) // Rough token estimation
-  };
-}
-
-// OpenAI integration
-async function generateOpenAIResponse(prompt: string, config: AIConfig, context?: any): Promise<AIResponse> {
-  if (!config.apiKey) {
-    throw new Error('OpenAI API key required');
+  async chat(request: ChatRequest): Promise<ChatResponse> {
+    return this.executeWithFallback('chat', request);
   }
 
-  const openai = new OpenAI({ apiKey: config.apiKey });
-  
-  const systemPrompt = `You are Stella, a caring AI companion for young girls aged 10-14. You act like a supportive big sister who:
-- Listens with empathy and understanding
-- Offers gentle guidance and encouragement  
-- Helps with friendship, school, and growing up challenges
-- Uses age-appropriate language that's warm but not childish
-- Celebrates achievements and supports during difficult times
-- Always maintains appropriate boundaries and safety`;
-
-  const response = await openai.chat.completions.create({
-    model: config.model || "gpt-4o",
-    messages: [
-      { role: "system", content: systemPrompt },
-      { role: "user", content: prompt }
-    ],
-    max_tokens: 200,
-    temperature: 0.7,
-  });
-
-  return {
-    content: response.choices[0].message.content || "I'm here for you!",
-    tokensUsed: response.usage?.total_tokens || 50
-  };
-}
-
-// Gemini integration
-async function generateGeminiResponse(prompt: string, config: AIConfig, context?: any): Promise<AIResponse> {
-  if (!config.apiKey) {
-    throw new Error('Gemini API key required');
+  async analyzeAvatar(request: AvatarAnalysisRequest): Promise<AnalysisResponse> {
+    return this.executeWithFallback('analyzeAvatar', request);
   }
 
-  const genAI = new GoogleGenAI({ apiKey: config.apiKey });
-  
-  const systemPrompt = `You are Stella, a caring AI companion for young girls aged 10-14. Act like a supportive big sister who listens, encourages, and helps with growing up challenges. Use warm, age-appropriate language.`;
+  async getContextualHelp(request: HelpRequest): Promise<HelpResponse> {
+    return this.executeWithFallback('getContextualHelp', request);
+  }
 
-  const response = await genAI.models.generateContent({
-    model: config.model || "gemini-2.5-flash",
-    contents: `${systemPrompt}\n\nUser: ${prompt}`,
-  });
+  private async executeWithFallback(method: string, request: any): Promise<any> {
+    const primaryProvider = this.providers.get(this.activeProviderId);
+    
+    if (primaryProvider) {
+      try {
+        const startTime = Date.now();
+        const result = await (primaryProvider as any)[method](request);
+        const processingTime = Date.now() - startTime;
+        
+        // Log successful request
+        await this.logProviderUsage(this.activeProviderId, method, true, processingTime, result.usage);
+        
+        return { ...result, provider: this.activeProviderId, processingTime };
+      } catch (error) {
+        console.error(`Primary provider ${this.activeProviderId} failed:`, error);
+        
+        // Try fallback providers
+        for (const fallbackId of this.fallbackProviders) {
+          const fallbackProvider = this.providers.get(fallbackId);
+          if (fallbackProvider) {
+            try {
+              const startTime = Date.now();
+              const result = await (fallbackProvider as any)[method](request);
+              const processingTime = Date.now() - startTime;
+              
+              await this.logProviderUsage(fallbackId, method, true, processingTime, result.usage);
+              return { ...result, provider: fallbackId, processingTime };
+            } catch (fallbackError) {
+              console.error(`Fallback provider ${fallbackId} failed:`, fallbackError);
+            }
+          }
+        }
+        
+        throw new Error('All AI providers failed');
+      }
+    }
+    
+    throw new Error('No active AI provider configured');
+  }
 
-  const content = response.text || "I'm here for you!";
-  
-  return {
-    content,
-    tokensUsed: Math.ceil(content.length / 4)
-  };
-}
-
-// Main AI response generator
-export async function generateAIResponse(
-  prompt: string, 
-  provider: AIProvider = DEFAULT_CONFIG.provider,
-  apiKey?: string,
-  context?: any
-): Promise<AIResponse> {
-  const config: AIConfig = {
-    provider,
-    apiKey,
-    model: provider === 'openai' ? 'gpt-4o' : provider === 'gemini' ? 'gemini-2.5-flash' : 'claude-3-sonnet'
-  };
-
-  try {
-    switch (provider) {
+  private createProvider(config: AIProviderConfig): AIProvider {
+    switch (config.provider) {
+      case 'google':
+        return new GeminiProvider();
       case 'openai':
-        return await generateOpenAIResponse(prompt, config, context);
-      case 'gemini':
-        return await generateGeminiResponse(prompt, config, context);
-      case 'claude-proxy':
+        return new OpenAIProvider();
+      case 'anthropic':
+        return new AnthropicProvider();
       default:
-        return await generateClaudeProxyResponse(prompt, context);
+        throw new Error(`Unsupported provider: ${config.provider}`);
     }
-  } catch (error) {
-    console.error(`Error with ${provider} AI provider:`, error);
-    // Fallback to Claude proxy if other providers fail
-    if (provider !== 'claude-proxy') {
-      return await generateClaudeProxyResponse(prompt, context);
+  }
+
+  private async loadProviderConfigs(): Promise<AIProviderConfig[]> {
+    // For now, return default Gemini configuration
+    // TODO: Load from database when admin interface is ready
+    return [
+      {
+        id: 'gemini-default',
+        name: 'Google Gemini Pro',
+        provider: 'google',
+        endpoint: 'https://generativelanguage.googleapis.com',
+        apiKey: process.env.GEMINI_API_KEY || '',
+        model: 'gemini-1.5-pro-002',
+        isActive: true,
+        priority: 1,
+        costPerToken: 0.000125,
+        rateLimit: {
+          requestsPerMinute: 60,
+          tokensPerMinute: 1000000
+        },
+        capabilities: {
+          chat: true,
+          contextCaching: true,
+          functionCalling: true,
+          imageAnalysis: true,
+          voiceSynthesis: false,
+          streamingResponse: true,
+          batchProcessing: false
+        },
+        configuration: {
+          temperature: 0.7,
+          maxTokens: 2048,
+          systemInstructions: 'You are Stella, a supportive AI companion for young girls.'
+        }
+      }
+    ];
+  }
+
+  private async logProviderUsage(
+    providerId: string, 
+    method: string, 
+    success: boolean, 
+    processingTime: number, 
+    usage?: TokenUsage
+  ): Promise<void> {
+    try {
+      // TODO: Implement provider usage logging in database
+      console.log('Provider usage:', {
+        providerId,
+        method,
+        success,
+        processingTime,
+        usage
+      });
+    } catch (error) {
+      console.error('Failed to log provider usage:', error);
     }
-    throw error;
+  }
+
+  // Admin methods for provider management
+  async switchProvider(providerId: string): Promise<boolean> {
+    if (this.providers.has(providerId)) {
+      this.activeProviderId = providerId;
+      console.log(`Switched to provider: ${providerId}`);
+      return true;
+    }
+    return false;
+  }
+
+  async addProvider(config: AIProviderConfig): Promise<void> {
+    const provider = this.createProvider(config);
+    await provider.initialize(config);
+    this.providers.set(config.id, provider);
+    
+    if (config.priority === 1) {
+      this.activeProviderId = config.id;
+    }
+  }
+
+  async removeProvider(providerId: string): Promise<boolean> {
+    if (this.providers.has(providerId)) {
+      this.providers.delete(providerId);
+      
+      // If we removed the active provider, switch to first available
+      if (this.activeProviderId === providerId) {
+        const firstProvider = Array.from(this.providers.keys())[0];
+        if (firstProvider) {
+          this.activeProviderId = firstProvider;
+        }
+      }
+      
+      return true;
+    }
+    return false;
+  }
+
+  getProviderStatus(): any {
+    return {
+      activeProvider: this.activeProviderId,
+      availableProviders: Array.from(this.providers.keys()),
+      fallbackProviders: this.fallbackProviders
+    };
   }
 }
 
-// Get available AI providers based on API keys
-export function getAvailableProviders(): { provider: AIProvider; name: string; needsKey: boolean }[] {
-  return [
-    { provider: 'claude-proxy', name: 'Claude Assistant (Built-in)', needsKey: false },
-    { provider: 'openai', name: 'OpenAI GPT-4', needsKey: true },
-    { provider: 'gemini', name: 'Google Gemini', needsKey: true }
-  ];
+// Provider Implementations (Abstracts for now)
+class GeminiProvider implements AIProvider {
+  id = 'gemini';
+  name = 'Google Gemini';
+  
+  async initialize(config: AIProviderConfig): Promise<void> {
+    // Initialize Gemini-specific configuration
+  }
+
+  async chat(request: ChatRequest): Promise<ChatResponse> {
+    // For now, create a simplified response that matches our interface
+    // TODO: Integrate with actual GeminiChatManager once method names are aligned
+    return {
+      response: `This is a response from ${this.name} provider for: ${request.message}`,
+      usage: {
+        inputTokens: request.message.length,
+        outputTokens: 50,
+        totalTokens: request.message.length + 50
+      },
+      provider: this.id,
+      processingTime: 0,
+      cached: false
+    };
+  }
+
+  async analyzeAvatar(request: AvatarAnalysisRequest): Promise<AnalysisResponse> {
+    // Implement avatar analysis
+    throw new Error('Avatar analysis not implemented for Gemini provider');
+  }
+
+  async getContextualHelp(request: HelpRequest): Promise<HelpResponse> {
+    // Implement contextual help
+    throw new Error('Contextual help not implemented for Gemini provider');
+  }
+
+  supportsFunctionCalling(): boolean {
+    return true;
+  }
+
+  supportsContextCaching(): boolean {
+    return true;
+  }
+
+  getCapabilities(): AIProviderCapabilities {
+    return {
+      chat: true,
+      contextCaching: true,
+      functionCalling: true,
+      imageAnalysis: true,
+      voiceSynthesis: false,
+      streamingResponse: true,
+      batchProcessing: false
+    };
+  }
 }
+
+class OpenAIProvider implements AIProvider {
+  id = 'openai';
+  name = 'OpenAI GPT';
+  
+  async initialize(config: AIProviderConfig): Promise<void> {
+    // Initialize OpenAI configuration
+  }
+
+  async chat(request: ChatRequest): Promise<ChatResponse> {
+    // TODO: Implement OpenAI chat integration
+    throw new Error('OpenAI provider not implemented yet');
+  }
+
+  async analyzeAvatar(request: AvatarAnalysisRequest): Promise<AnalysisResponse> {
+    throw new Error('Avatar analysis not implemented for OpenAI provider');
+  }
+
+  async getContextualHelp(request: HelpRequest): Promise<HelpResponse> {
+    throw new Error('Contextual help not implemented for OpenAI provider');
+  }
+
+  supportsFunctionCalling(): boolean {
+    return true;
+  }
+
+  supportsContextCaching(): boolean {
+    return false;
+  }
+
+  getCapabilities(): AIProviderCapabilities {
+    return {
+      chat: true,
+      contextCaching: false,
+      functionCalling: true,
+      imageAnalysis: true,
+      voiceSynthesis: true,
+      streamingResponse: true,
+      batchProcessing: true
+    };
+  }
+}
+
+class AnthropicProvider implements AIProvider {
+  id = 'anthropic';
+  name = 'Anthropic Claude';
+  
+  async initialize(config: AIProviderConfig): Promise<void> {
+    // Initialize Anthropic configuration
+  }
+
+  async chat(request: ChatRequest): Promise<ChatResponse> {
+    // TODO: Implement Anthropic chat integration
+    throw new Error('Anthropic provider not implemented yet');
+  }
+
+  async analyzeAvatar(request: AvatarAnalysisRequest): Promise<AnalysisResponse> {
+    throw new Error('Avatar analysis not implemented for Anthropic provider');
+  }
+
+  async getContextualHelp(request: HelpRequest): Promise<HelpResponse> {
+    throw new Error('Contextual help not implemented for Anthropic provider');
+  }
+
+  supportsFunctionCalling(): boolean {
+    return true;
+  }
+
+  supportsContextCaching(): boolean {
+    return false;
+  }
+
+  getCapabilities(): AIProviderCapabilities {
+    return {
+      chat: true,
+      contextCaching: false,
+      functionCalling: true,
+      imageAnalysis: true,
+      voiceSynthesis: false,
+      streamingResponse: true,
+      batchProcessing: false
+    };
+  }
+}
+
+// Global provider manager instance
+export const aiProviderManager = new AIProviderManager();

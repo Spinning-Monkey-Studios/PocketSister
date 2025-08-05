@@ -10,27 +10,43 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { Separator } from "@/components/ui/separator";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest } from "@/lib/queryClient";
+import { TokenUsage, TokenStatusBadge } from "@/components/TokenUsage";
+import { FeatureGhost } from "@/components/FeatureGhost";
+import { UpgradePrompt } from "@/components/UpgradePrompt";
+import { PurchaseTokensModal } from "@/components/PurchaseTokensModal";
 import type { Conversation, Message } from "@shared/schema";
+
+// Extended message type with metadata for frontend use
+interface MessageWithMetadata extends Message {
+  metadata?: {
+    fileUrl?: string;
+    fileName?: string;
+    fileMimeType?: string;
+  };
+}
 
 export default function ChatPage() {
   const userId = "demo-user"; // In a real app, this would come from authentication
+  const childId = "demo-child-1"; // This would come from child profile selection
   const [currentMessage, setCurrentMessage] = useState("");
   const [selectedConversation, setSelectedConversation] = useState<string | null>(null);
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [isUploading, setIsUploading] = useState(false);
   const [showFileUpload, setShowFileUpload] = useState(false);
+  const [showUpgradePrompt, setShowUpgradePrompt] = useState(false);
+  const [showPurchaseModal, setShowPurchaseModal] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const { toast } = useToast();
   const queryClient = useQueryClient();
 
   // Fetch conversations
-  const { data: conversations = [], isLoading: loadingConversations } = useQuery({
+  const { data: conversations = [], isLoading: loadingConversations } = useQuery<Conversation[]>({
     queryKey: ['/api/chat/conversations'],
     meta: { headers: { 'x-user-id': userId } }
   });
 
   // Fetch messages for selected conversation
-  const { data: messages = [], isLoading: loadingMessages } = useQuery({
+  const { data: messages = [], isLoading: loadingMessages } = useQuery<MessageWithMetadata[]>({
     queryKey: ['/api/chat/conversations', selectedConversation, 'messages'],
     enabled: !!selectedConversation,
     meta: { headers: { 'x-user-id': userId } }
@@ -56,6 +72,17 @@ export default function ChatPage() {
     }
   });
 
+  // Fetch token restrictions
+  const { data: tokenRestrictions } = useQuery({
+    queryKey: ['token-restrictions', childId],
+    queryFn: async () => {
+      const response = await fetch(`/api/tokens/restrictions/${childId}`);
+      if (!response.ok) throw new Error('Failed to fetch restrictions');
+      return response.json();
+    },
+    refetchInterval: 30000 // Refresh every 30 seconds
+  });
+
   // Send message mutation
   const sendMessageMutation = useMutation({
     mutationFn: (data: { 
@@ -65,27 +92,41 @@ export default function ChatPage() {
       fileName?: string; 
       fileMimeType?: string;
     }) =>
-      apiRequest("POST", "/api/chat/send", data, { 'x-user-id': userId }),
-    onSuccess: (response) => {
+      apiRequest("POST", "/api/chat/send", { ...data, childId }),
+    onSuccess: async (response) => {
       setCurrentMessage("");
+      const data = await response.json();
       
       // Update conversations list
       queryClient.invalidateQueries({ queryKey: ['/api/chat/conversations'] });
       
       // Update messages if we have a conversation
-      if (response.conversation) {
-        setSelectedConversation(response.conversation.id);
+      if (data.conversation) {
+        setSelectedConversation(data.conversation.id);
         queryClient.invalidateQueries({ 
-          queryKey: ['/api/chat/conversations', response.conversation.id, 'messages'] 
+          queryKey: ['/api/chat/conversations', data.conversation.id, 'messages'] 
         });
       }
     },
     onError: (error: any) => {
-      toast({
-        title: "Error",
-        description: error.message || "Failed to send message",
-        variant: "destructive",
-      });
+      // Handle token restriction errors
+      if (error.status === 402) {
+        const errorData = error.response || {};
+        if (errorData.upgradeRequired) {
+          setShowUpgradePrompt(true);
+        }
+        toast({
+          title: "Feature Restricted",
+          description: errorData.message || "Token limit reached or premium feature required",
+          variant: "destructive",
+        });
+      } else {
+        toast({
+          title: "Error",
+          description: error.message || "Failed to send message",
+          variant: "destructive",
+        });
+      }
     },
   });
 
@@ -97,6 +138,19 @@ export default function ChatPage() {
   const handleSendMessage = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!currentMessage.trim() && !selectedFile) return;
+
+    // Check if chat is restricted
+    if (tokenRestrictions?.chat?.restricted) {
+      if (tokenRestrictions.chat.upgradeRequired) {
+        setShowUpgradePrompt(true);
+      }
+      toast({
+        title: "Chat Unavailable",
+        description: tokenRestrictions.chat.reason || "Chat feature is currently restricted",
+        variant: "destructive",
+      });
+      return;
+    }
 
     let fileData = {};
     
@@ -136,7 +190,8 @@ export default function ChatPage() {
     setSelectedConversation(null);
   };
 
-  const formatTime = (dateString: string) => {
+  const formatTime = (dateString: string | Date | null) => {
+    if (!dateString) return '';
     return new Date(dateString).toLocaleTimeString([], { 
       hour: '2-digit', 
       minute: '2-digit' 
@@ -149,14 +204,27 @@ export default function ChatPage() {
       <div className="w-80 bg-white shadow-lg border-r">
         <div className="p-4">
           <div className="flex items-center justify-between mb-4">
-            <h2 className="font-nunito font-bold text-xl text-gray-800">Chat with Stella</h2>
+            <div className="flex items-center gap-2">
+              <h2 className="font-nunito font-bold text-xl text-gray-800">Chat with Stella</h2>
+              <TokenStatusBadge childId={childId} />
+            </div>
             <Button
               onClick={startNewConversation}
               size="sm"
               className="bg-primary-pink hover:bg-opacity-80"
+              disabled={tokenRestrictions?.chat?.restricted}
             >
               <Plus className="h-4 w-4" />
             </Button>
+          </div>
+          
+          {/* Token Usage Display */}
+          <div className="mb-4">
+            <TokenUsage 
+              childId={childId}
+              onUpgrade={() => setShowUpgradePrompt(true)}
+              onPurchaseTokens={() => setShowPurchaseModal(true)}
+            />
           </div>
           
           <ScrollArea className="h-[calc(100vh-120px)]">
@@ -189,17 +257,12 @@ export default function ChatPage() {
                         {conversation.title || "New conversation"}
                       </h4>
                       <p className="text-xs text-gray-500 mt-1 truncate">
-                        {conversation.summary || "Start chatting..."}
+                        Start chatting...
                       </p>
                       <div className="flex items-center justify-between mt-2">
                         <span className="text-xs text-gray-400">
                           {formatTime(conversation.updatedAt)}
                         </span>
-                        {conversation.mood && (
-                          <span className="text-xs bg-gray-100 px-2 py-1 rounded-full">
-                            {conversation.mood}
-                          </span>
-                        )}
                       </div>
                     </CardContent>
                   </Card>
@@ -275,7 +338,7 @@ export default function ChatPage() {
             </div>
           ) : (
             <div className="space-y-4">
-              {messages.map((message: Message) => (
+              {messages.map((message: MessageWithMetadata) => (
                 <div
                   key={message.id}
                   className={`flex ${message.role === 'user' ? 'justify-end' : 'justify-start'}`}
@@ -288,18 +351,18 @@ export default function ChatPage() {
                     }`}
                   >
                     {/* File attachment display */}
-                    {message.metadata?.fileUrl && (
+                    {message.fileUrl && (
                       <div className="mb-2">
-                        {message.metadata.fileMimeType?.startsWith('image/') ? (
+                        {message.fileMimeType?.startsWith('image/') ? (
                           <img 
-                            src={message.metadata.fileUrl} 
-                            alt={message.metadata.fileName || 'Shared image'}
+                            src={message.fileUrl} 
+                            alt={message.fileName || 'Shared image'}
                             className="max-w-48 rounded-lg border"
                           />
                         ) : (
                           <div className="flex items-center gap-2 p-2 bg-gray-100 rounded-lg">
                             <File className="w-4 h-4" />
-                            <span className="text-sm">{message.metadata.fileName}</span>
+                            <span className="text-sm">{message.fileName}</span>
                           </div>
                         )}
                       </div>
@@ -334,7 +397,7 @@ export default function ChatPage() {
               <FileUpload
                 onFileSelect={setSelectedFile}
                 onFileRemove={() => setSelectedFile(null)}
-                selectedFile={selectedFile}
+                selectedFile={selectedFile || undefined}
                 disabled={isUploading || sendMessageMutation.isPending}
                 className="mb-2"
               />
@@ -361,15 +424,23 @@ export default function ChatPage() {
                   className="flex-1 rounded-full border-2 border-gray-200 focus:border-primary-pink"
                   disabled={sendMessageMutation.isPending || isUploading}
                 />
-                <VoiceInput
-                  onTranscript={(text) => setCurrentMessage(prev => prev + (prev ? ' ' : '') + text)}
-                  disabled={sendMessageMutation.isPending || isUploading}
-                />
+                <FeatureGhost
+                  featureName="Voice Input"
+                  featureType="voice_synthesis"
+                  isRestricted={tokenRestrictions?.voiceSynthesis?.restricted || false}
+                  restriction={tokenRestrictions?.voiceSynthesis}
+                  childId={childId}
+                >
+                  <VoiceInput
+                    onTranscript={(text) => setCurrentMessage(prev => prev + (prev ? ' ' : '') + text)}
+                    disabled={sendMessageMutation.isPending || isUploading}
+                  />
+                </FeatureGhost>
               </div>
             </div>
             <Button
               type="submit"
-              disabled={sendMessageMutation.isPending || isUploading || (!currentMessage.trim() && !selectedFile)}
+              disabled={sendMessageMutation.isPending || isUploading || (!currentMessage.trim() && !selectedFile) || tokenRestrictions?.chat?.restricted}
               className="gradient-pink-purple rounded-full px-6"
             >
               {sendMessageMutation.isPending || isUploading ? (
@@ -381,6 +452,22 @@ export default function ChatPage() {
           </form>
         </div>
       </div>
+      
+      {/* Upgrade and Purchase Modals */}
+      <UpgradePrompt
+        isOpen={showUpgradePrompt}
+        onClose={() => setShowUpgradePrompt(false)}
+        trigger="tokens"
+        currentPlan="Basic"
+      />
+      
+      <PurchaseTokensModal
+        isOpen={showPurchaseModal}
+        onClose={() => setShowPurchaseModal(false)}
+        childId={childId}
+        currentRate={0.001}
+        planName="Premium"
+      />
     </div>
   );
 }

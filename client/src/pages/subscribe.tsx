@@ -173,7 +173,7 @@ export default function Subscribe() {
         </div>
 
         <div className="grid md:grid-cols-3 gap-8 max-w-6xl mx-auto">
-          {(plans || []).map((plan: PricingPlan) => (
+          {((plans as PricingPlan[]) || []).map((plan: PricingPlan) => (
             <Card 
               key={plan.id} 
               className={`relative border-2 transition-all hover:shadow-lg ${

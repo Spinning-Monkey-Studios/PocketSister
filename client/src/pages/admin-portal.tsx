@@ -58,29 +58,57 @@ export default function AdminPortal() {
     type: 'info',
     targetAudience: 'all',
   });
+  const [configStatus, setConfigStatus] = useState({
+    gemini: false,
+    openai: false,
+    elevenlabs: false,
+    stripe: false,
+    sendgrid: false
+  });
 
-  // Redirect if not admin
+  // Check admin access
+  useEffect(() => {
+    const adminSecret = localStorage.getItem('adminSecret');
+    const adminToken = localStorage.getItem('adminToken');
+    
+    if (!adminSecret || !adminToken) {
+      // Redirect to admin login
+      window.location.href = '/admin-login';
+      return;
+    }
+    
+    // Set the admin secret in API requests
+    if (adminSecret) {
+      // This will be used by apiRequest for admin endpoints
+      (window as any).adminSecret = adminSecret;
+    }
+  }, []);
+
+  // Redirect if not admin (fallback check)
   useEffect(() => {
     if (!isLoading && (!isAuthenticated || !(user as any)?.isAdmin)) {
-      toast({
-        title: "Access Denied",
-        description: "Admin access required. Redirecting...",
-        variant: "destructive",
-      });
-      setTimeout(() => {
-        window.location.href = "/";
-      }, 1000);
+      const adminSecret = localStorage.getItem('adminSecret');
+      if (!adminSecret) {
+        toast({
+          title: "Access Denied",
+          description: "Admin access required. Redirecting...",
+          variant: "destructive",
+        });
+        setTimeout(() => {
+          window.location.href = "/";
+        }, 1000);
+      }
     }
   }, [isAuthenticated, isLoading, user, toast]);
 
   // Fetch users
-  const { data: users = [], isLoading: usersLoading } = useQuery({
+  const { data: users = [], isLoading: usersLoading } = useQuery<User[]>({
     queryKey: ["/api/admin/users"],
     enabled: isAuthenticated && (user as any)?.isAdmin,
   });
 
   // Fetch announcements
-  const { data: announcements = [], isLoading: announcementsLoading } = useQuery({
+  const { data: announcements = [], isLoading: announcementsLoading } = useQuery<Announcement[]>({
     queryKey: ["/api/admin/announcements"],
     enabled: isAuthenticated && (user as any)?.isAdmin,
   });
@@ -89,6 +117,16 @@ export default function AdminPortal() {
   const { data: usageOverview = [], isLoading: usageLoading } = useQuery<UsageOverview[]>({
     queryKey: ["/api/admin/usage-overview"],
     enabled: isAuthenticated && (user as any)?.isAdmin,
+  });
+
+  // Fetch child profiles
+  const { data: childProfiles = [], isLoading: childProfilesLoading } = useQuery({
+    queryKey: ["/api/admin/child-profiles"],
+  });
+
+  // Fetch system stats
+  const { data: systemStats, isLoading: statsLoading } = useQuery({
+    queryKey: ["/api/admin/stats"],
   });
 
   // Update user subscription mutation
@@ -117,6 +155,46 @@ export default function AdminPortal() {
         title: "Error",
         description: "Failed to update subscription",
         variant: "destructive",
+      });
+    },
+  });
+
+  // Child profile mutations
+  const updateChildStatusMutation = useMutation({
+    mutationFn: async ({ childId, status }: { childId: string; status: string }) => {
+      return apiRequest("PUT", `/api/admin/child-profiles/${childId}/status`, { status });
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/admin/child-profiles"] });
+      toast({
+        title: "Success",
+        description: "Child profile status updated",
+      });
+    },
+  });
+
+  const upgradeChildTierMutation = useMutation({
+    mutationFn: async ({ childId, tier }: { childId: string; tier: string }) => {
+      return apiRequest("PUT", `/api/admin/child-profiles/${childId}/tier`, { tier });
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/admin/child-profiles"] });
+      toast({
+        title: "Success",
+        description: "Child profile tier upgraded",
+      });
+    },
+  });
+
+  const deleteChildProfileMutation = useMutation({
+    mutationFn: async (childId: string) => {
+      return apiRequest("DELETE", `/api/admin/child-profiles/${childId}`);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/admin/child-profiles"] });
+      toast({
+        title: "Success",
+        description: "Child profile deleted",
       });
     },
   });
@@ -183,6 +261,22 @@ export default function AdminPortal() {
     }
   };
 
+  useEffect(() => {
+    loadConfigStatus();
+  }, []);
+
+  const loadConfigStatus = async () => {
+    try {
+      const response = await fetch('/api/admin/config-status');
+      if (response.ok) {
+        const status = await response.json();
+        setConfigStatus(status);
+      }
+    } catch (error) {
+      console.error('Failed to load config status:', error);
+    }
+  };
+
   if (isLoading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
@@ -238,7 +332,7 @@ export default function AdminPortal() {
 
       <div className="container mx-auto px-4 py-8">
         <Tabs defaultValue="users" className="space-y-6">
-          <TabsList className="grid w-full grid-cols-4">
+          <TabsList className="grid w-full grid-cols-5">
             <TabsTrigger value="users">
               <Users className="h-4 w-4 mr-2" />
               User Management
@@ -254,6 +348,10 @@ export default function AdminPortal() {
             <TabsTrigger value="usage">
               <BarChart3 className="h-4 w-4 mr-2" />
               Message Usage
+            </TabsTrigger>
+            <TabsTrigger value="config">
+              <Settings className="h-4 w-4 mr-2" />
+              API Config
             </TabsTrigger>
           </TabsList>
 
@@ -467,7 +565,7 @@ export default function AdminPortal() {
                       </CardContent>
                     </Card>
                   </div>
-                  
+
                   <div className="p-4 bg-blue-50 rounded-lg">
                     <h4 className="font-medium text-blue-900 mb-2">Stripe Configuration</h4>
                     <p className="text-sm text-blue-700">
@@ -512,13 +610,13 @@ export default function AdminPortal() {
                             {userUsage.profiles.length} {userUsage.profiles.length === 1 ? 'Child' : 'Children'}
                           </Badge>
                         </div>
-                        
+
                         <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
                           {userUsage.profiles.map((profile) => {
                             const usagePercentage = (profile.messageCount / profile.monthlyLimit) * 100;
                             const isOverLimit = usagePercentage >= 100;
                             const isApproachingLimit = usagePercentage >= 80;
-                            
+
                             return (
                               <div key={profile.childId} className="bg-white p-4 rounded-lg border">
                                 <div className="flex items-center justify-between mb-2">
@@ -574,6 +672,120 @@ export default function AdminPortal() {
                 )}
               </CardContent>
             </Card>
+          </TabsContent>
+
+          {/* API Configuration Tab */}
+          <TabsContent value="config">
+            <div className="grid gap-6 md:grid-cols-2">
+              <Card>
+                <CardHeader>
+                  <CardTitle>API Configuration</CardTitle>
+                  <CardDescription>Configure external API integrations</CardDescription>
+                </CardHeader>
+                <CardContent className="space-y-6">
+                  <div className="p-4 bg-blue-50 rounded-lg border border-blue-200">
+                    <h4 className="font-medium text-blue-900 mb-2">Environment Variables</h4>
+                    <p className="text-sm text-blue-700 mb-3">
+                      API keys are managed through Replit's Secrets tool for security.
+                    </p>
+                    <Button 
+                      variant="outline" 
+                      size="sm"
+                      onClick={() => window.open('https://docs.replit.com/programming-ide/workspace-features/storing-sensitive-information-environment-variables', '_blank')}
+                    >
+                      View Secrets Documentation
+                    </Button>
+                  </div>
+
+                  <div className="space-y-4">
+                    <div className="border rounded-lg p-4">
+                      <div className="flex items-center justify-between mb-2">
+                        <h4 className="font-medium">ElevenLabs Voice API</h4>
+                        <Badge variant={configStatus.elevenlabs ? "default" : "secondary"}>
+                          {configStatus.elevenlabs ? "Configured" : "Not Set"}
+                        </Badge>
+                      </div>
+                      <p className="text-sm text-gray-600 mb-3">
+                        Required for high-quality voice synthesis. Falls back to browser voice if not configured.
+                      </p>
+                      <p className="text-xs text-gray-500">
+                        Environment Variable: <code>ELEVENLABS_API_KEY</code>
+                      </p>
+                    </div>
+
+                    <div className="border rounded-lg p-4">
+                      <div className="flex items-center justify-between mb-2">
+                        <h4 className="font-medium">OpenAI API</h4>
+                        <Badge variant={configStatus.openai ? "default" : "secondary"}>
+                          {configStatus.openai ? "Configured" : "Not Set"}
+                        </Badge>
+                      </div>
+                      <p className="text-sm text-gray-600 mb-3">
+                        Optional for advanced AI features. Platform uses built-in responses if not configured.
+                      </p>
+                      <p className="text-xs text-gray-500">
+                        Environment Variable: <code>OPENAI_API_KEY</code>
+                      </p>
+                    </div>
+
+                    <div className="border rounded-lg p-4">
+                      <div className="flex items-center justify-between mb-2">
+                        <h4 className="font-medium">Google Gemini API</h4>
+                        <Badge variant={configStatus.gemini ? "default" : "secondary"}>
+                          {configStatus.gemini ? "Configured" : "Not Set"}
+                        </Badge>
+                      </div>
+                      <p className="text-sm text-gray-600 mb-3">
+                        Alternative AI provider for enhanced responses and multimodal features.
+                      </p>
+                      <p className="text-xs text-gray-500">
+                        Environment Variable: <code>GEMINI_API_KEY</code>
+                      </p>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+
+              <Card>
+                <CardHeader>
+                  <CardTitle>Quick Setup Guide</CardTitle>
+                  <CardDescription>How to configure API keys</CardDescription>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  <div className="space-y-3">
+                    <h4 className="font-medium">1. Access Replit Secrets</h4>
+                    <p className="text-sm text-gray-600">
+                      Click the "Secrets" tab in the left sidebar or use Tools → Secrets
+                    </p>
+                  </div>
+
+                  <div className="space-y-3">
+                    <h4 className="font-medium">2. Add API Keys</h4>
+                    <p className="text-sm text-gray-600">
+                      Add these environment variables:
+                    </p>
+                    <div className="bg-gray-50 p-3 rounded-lg text-sm font-mono">
+                      <div>ELEVENLABS_API_KEY</div>
+                      <div>OPENAI_API_KEY (optional)</div>
+                      <div>GEMINI_API_KEY (optional)</div>
+                    </div>
+                  </div>
+
+                  <div className="space-y-3">
+                    <h4 className="font-medium">3. Restart Application</h4>
+                    <p className="text-sm text-gray-600">
+                      Click the "Stop" button then "Run" to reload environment variables
+                    </p>
+                  </div>
+
+                  <div className="p-3 bg-amber-50 rounded-lg border border-amber-200">
+                    <p className="text-sm text-amber-800">
+                      <strong>Note:</strong> Changes require an application restart to take effect.
+                    </p>
+                  </div>
+                </CardContent>
+              </Card>
+            </div>
           </TabsContent>
         </Tabs>
       </div>

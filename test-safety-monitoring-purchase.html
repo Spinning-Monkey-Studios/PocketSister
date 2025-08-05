@@ -1,0 +1,405 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Safety Monitoring Add-on Purchase Test - My Pocket Sister</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            max-width: 900px;
+            margin: 0 auto;
+            padding: 20px;
+            background: #f8fafc;
+        }
+        .container {
+            background: white;
+            border-radius: 12px;
+            padding: 30px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+            padding-bottom: 20px;
+            border-bottom: 2px solid #e5e7eb;
+        }
+        .test-section {
+            margin: 25px 0;
+            padding: 20px;
+            border: 1px solid #e5e7eb;
+            border-radius: 8px;
+            background: #f9fafb;
+        }
+        .test-input {
+            width: 100%;
+            padding: 12px;
+            border: 1px solid #d1d5db;
+            border-radius: 6px;
+            font-size: 14px;
+            margin: 10px 0;
+        }
+        .btn {
+            background: #3b82f6;
+            color: white;
+            border: none;
+            padding: 12px 20px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 14px;
+            margin: 5px;
+        }
+        .btn:hover { background: #2563eb; }
+        .btn-success { background: #10b981; }
+        .btn-success:hover { background: #059669; }
+        .btn-warning { background: #f59e0b; }
+        .btn-warning:hover { background: #d97706; }
+        .btn-danger { background: #dc2626; }
+        .btn-danger:hover { background: #b91c1c; }
+        .result {
+            margin-top: 15px;
+            padding: 15px;
+            border-radius: 6px;
+            font-family: monospace;
+            font-size: 13px;
+            white-space: pre-wrap;
+        }
+        .result.success { background: #dcfce7; border: 1px solid #16a34a; }
+        .result.error { background: #fef2f2; border: 1px solid #dc2626; }
+        .result.warning { background: #fef3c7; border: 1px solid #d97706; }
+        .status-card {
+            border: 1px solid #d1d5db;
+            border-radius: 8px;
+            padding: 16px;
+            margin: 15px 0;
+            background: white;
+        }
+        .status-indicator {
+            display: inline-block;
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            margin-right: 8px;
+        }
+        .status-active { background: #10b981; }
+        .status-inactive { background: #dc2626; }
+        .status-pending { background: #f59e0b; }
+        .tier-badge {
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 12px;
+            font-weight: bold;
+            margin-left: 8px;
+        }
+        .tier-basic { background: #dbeafe; color: #1e40af; }
+        .tier-premium { background: #fef3c7; color: #92400e; }
+        .tier-family { background: #dcfce7; color: #166534; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🛡️ Safety Monitoring Add-on Purchase Test</h1>
+            <p>Test the tiered safety monitoring system with configurable alert thresholds</p>
+        </div>
+
+        <div class="test-section">
+            <h3>📊 Safety Monitoring Status Check</h3>
+            <p>Check the current safety monitoring status for a child based on subscription tier.</p>
+            
+            <input type="text" id="childId" class="test-input" placeholder="Child ID (e.g., test-child-123)" value="test-child-123">
+            
+            <button onclick="checkSafetyStatus()" class="btn">🔍 Check Status</button>
+            
+            <div id="statusResult" class="result" style="display: none;"></div>
+        </div>
+
+        <div class="test-section">
+            <h3>💳 Purchase Safety Monitoring Add-on</h3>
+            <p>Test purchasing the $9.99/month safety monitoring add-on for Basic/Premium tiers.</p>
+            
+            <div class="status-card">
+                <h4>Purchase Requirements:</h4>
+                <ul>
+                    <li>✓ Basic or Premium tier subscription</li>
+                    <li>✓ Valid child profile</li>
+                    <li>✓ No existing active add-on for this child</li>
+                    <li>🔄 Family tier has it included (no purchase needed)</li>
+                </ul>
+            </div>
+            
+            <input type="text" id="purchaseChildId" class="test-input" placeholder="Child ID for purchase" value="test-child-123">
+            
+            <button onclick="purchaseSafetyMonitoring()" class="btn btn-success">💰 Purchase Add-on ($9.99/month)</button>
+            
+            <div id="purchaseResult" class="result" style="display: none;"></div>
+        </div>
+
+        <div class="test-section">
+            <h3>⚙️ Alert Threshold Configuration</h3>
+            <p>Test configurable alert thresholds that parents can adjust for their comfort level.</p>
+            
+            <div class="status-card">
+                <h4>Alert Threshold Levels:</h4>
+                <div style="margin: 10px 0;">
+                    <label><input type="checkbox" checked disabled> <strong>Critical</strong> - Self-harm, abuse (cannot be disabled)</label>
+                </div>
+                <div style="margin: 10px 0;">
+                    <label><input type="checkbox" id="highAlerts" checked> <strong>High Priority</strong> - Depression, bullying</label>
+                </div>
+                <div style="margin: 10px 0;">
+                    <label><input type="checkbox" id="mediumAlerts"> <strong>Medium Priority</strong> - Stress, conflicts</label>
+                </div>
+                <div style="margin: 10px 0;">
+                    <label><input type="checkbox" id="lowAlerts"> <strong>Low Priority</strong> - Mild concerns</label>
+                </div>
+                
+                <div style="margin: 20px 0;">
+                    <label for="confidenceThreshold"><strong>AI Confidence Threshold:</strong> <span id="confidenceValue">70%</span></label>
+                    <input type="range" id="confidenceThreshold" min="50" max="95" value="70" style="width: 100%; margin: 10px 0;" oninput="updateConfidenceValue(this.value)">
+                    <p style="font-size: 12px; color: #666;">Higher values = fewer false positives, but may miss some concerns</p>
+                </div>
+            </div>
+            
+            <button onclick="updateThresholds()" class="btn btn-warning">⚙️ Update Alert Thresholds</button>
+            
+            <div id="thresholdResult" class="result" style="display: none;"></div>
+        </div>
+
+        <div class="test-section">
+            <h3>🔧 Manage Safety Monitoring</h3>
+            <p>Test enabling/disabling safety monitoring for specific children.</p>
+            
+            <input type="text" id="manageChildId" class="test-input" placeholder="Child ID to manage" value="test-child-123">
+            
+            <div style="margin: 15px 0;">
+                <button onclick="disableSafetyMonitoring()" class="btn btn-danger">🚫 Disable Safety Monitoring</button>
+                <p style="font-size: 12px; color: #666; margin-top: 5px;">
+                    Note: This will deactivate AI analysis but maintain subscription for reactivation
+                </p>
+            </div>
+            
+            <div id="manageResult" class="result" style="display: none;"></div>
+        </div>
+
+        <div class="test-section">
+            <h3>📈 Subscription Tier Comparison</h3>
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 15px;">
+                <div class="status-card">
+                    <h4>Basic Tier <span class="tier-badge tier-basic">$4.99/mo</span></h4>
+                    <ul style="font-size: 14px;">
+                        <li>1 Daily Affirmation</li>
+                        <li>Basic AI Companion</li>
+                        <li>Standard Avatar</li>
+                        <li><strong>Safety Monitoring: +$9.99/mo</strong></li>
+                    </ul>
+                </div>
+                
+                <div class="status-card">
+                    <h4>Premium Tier <span class="tier-badge tier-premium">$9.99/mo</span></h4>
+                    <ul style="font-size: 14px;">
+                        <li>3 Daily Affirmations</li>
+                        <li>Advanced AI Companion</li>
+                        <li>Mood & Goal Tracking</li>
+                        <li><strong>Safety Monitoring: +$9.99/mo</strong></li>
+                    </ul>
+                </div>
+                
+                <div class="status-card">
+                    <h4>Family Tier <span class="tier-badge tier-family">$19.99/mo</span></h4>
+                    <ul style="font-size: 14px;">
+                        <li>5 Daily Affirmations</li>
+                        <li>Up to 5 Child Profiles</li>
+                        <li>All Premium Features</li>
+                        <li><strong>Safety Monitoring: ✓ Included</strong></li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function updateConfidenceValue(value) {
+            document.getElementById('confidenceValue').textContent = value + '%';
+        }
+        
+        async function checkSafetyStatus() {
+            const childId = document.getElementById('childId').value;
+            const resultEl = document.getElementById('statusResult');
+            
+            if (!childId.trim()) {
+                showResult(resultEl, 'Please enter a child ID', 'error');
+                return;
+            }
+            
+            resultEl.style.display = 'block';
+            resultEl.textContent = 'Checking safety monitoring status...';
+            resultEl.className = 'result';
+            
+            try {
+                const response = await fetch(`/api/safety-monitoring/status/${encodeURIComponent(childId)}`);
+                const result = await response.json();
+                
+                if (response.ok) {
+                    let resultText = `🛡️ Safety Monitoring Status\n\n`;
+                    resultText += `Child ID: ${childId}\n`;
+                    resultText += `Has Access: ${result.hasAccess ? 'YES' : 'NO'}\n`;
+                    resultText += `Access Source: ${result.source}\n`;
+                    resultText += `Subscription Tier: ${result.tierName}\n`;
+                    resultText += `Can Purchase Add-on: ${result.canPurchaseAddon ? 'YES' : 'NO'}\n`;
+                    
+                    if (result.expiresAt) {
+                        resultText += `Expires: ${new Date(result.expiresAt).toLocaleDateString()}\n`;
+                    }
+                    
+                    const statusClass = result.hasAccess ? 'success' : 'warning';
+                    showResult(resultEl, resultText, statusClass);
+                } else {
+                    showResult(resultEl, `❌ Error: ${result.message}`, 'error');
+                }
+            } catch (error) {
+                showResult(resultEl, `❌ Error: ${error.message}`, 'error');
+            }
+        }
+        
+        async function purchaseSafetyMonitoring() {
+            const childId = document.getElementById('purchaseChildId').value;
+            const resultEl = document.getElementById('purchaseResult');
+            
+            if (!childId.trim()) {
+                showResult(resultEl, 'Please enter a child ID', 'error');
+                return;
+            }
+            
+            resultEl.style.display = 'block';
+            resultEl.textContent = 'Processing safety monitoring purchase...';
+            resultEl.className = 'result';
+            
+            try {
+                const response = await fetch('/api/safety-monitoring/purchase', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        childId
+                    })
+                });
+                
+                const result = await response.json();
+                
+                if (response.ok) {
+                    let resultText = `✅ Purchase Successful!\n\n`;
+                    resultText += `Add-on ID: ${result.addon.id}\n`;
+                    resultText += `Monthly Cost: $${result.addon.price}\n`;
+                    resultText += `Expires: ${new Date(result.expiresAt).toLocaleDateString()}\n`;
+                    resultText += `Status: Safety monitoring is now ACTIVE\n\n`;
+                    resultText += `✓ AI safety monitoring enabled\n`;
+                    resultText += `✓ Real-time alerts configured\n`;
+                    resultText += `✓ Email notifications activated\n`;
+                    
+                    showResult(resultEl, resultText, 'success');
+                } else {
+                    showResult(resultEl, `❌ Purchase failed: ${result.message}`, 'error');
+                }
+            } catch (error) {
+                showResult(resultEl, `❌ Error: ${error.message}`, 'error');
+            }
+        }
+        
+        async function updateThresholds() {
+            const childId = document.getElementById('childId').value;
+            const resultEl = document.getElementById('thresholdResult');
+            
+            if (!childId.trim()) {
+                showResult(resultEl, 'Please enter a child ID', 'error');
+                return;
+            }
+            
+            const thresholds = {
+                critical: true, // Always enabled
+                high: document.getElementById('highAlerts').checked,
+                medium: document.getElementById('mediumAlerts').checked,
+                low: document.getElementById('lowAlerts').checked,
+                confidenceMinimum: parseFloat(document.getElementById('confidenceThreshold').value) / 100
+            };
+            
+            resultEl.style.display = 'block';
+            resultEl.textContent = 'Updating alert thresholds...';
+            resultEl.className = 'result';
+            
+            try {
+                // Simulate API call (would be to parent controls update endpoint)
+                await new Promise(resolve => setTimeout(resolve, 1000));
+                
+                let resultText = `⚙️ Alert Thresholds Updated\n\n`;
+                resultText += `Critical Alerts: ✓ Enabled (cannot be disabled)\n`;
+                resultText += `High Priority: ${thresholds.high ? '✓ Enabled' : '❌ Disabled'}\n`;
+                resultText += `Medium Priority: ${thresholds.medium ? '✓ Enabled' : '❌ Disabled'}\n`;
+                resultText += `Low Priority: ${thresholds.low ? '✓ Enabled' : '❌ Disabled'}\n`;
+                resultText += `AI Confidence: ${Math.round(thresholds.confidenceMinimum * 100)}% minimum\n\n`;
+                resultText += `Settings saved successfully for child: ${childId}`;
+                
+                showResult(resultEl, resultText, 'success');
+            } catch (error) {
+                showResult(resultEl, `❌ Error: ${error.message}`, 'error');
+            }
+        }
+        
+        async function disableSafetyMonitoring() {
+            const childId = document.getElementById('manageChildId').value;
+            const resultEl = document.getElementById('manageResult');
+            
+            if (!childId.trim()) {
+                showResult(resultEl, 'Please enter a child ID', 'error');
+                return;
+            }
+            
+            resultEl.style.display = 'block';
+            resultEl.textContent = 'Disabling safety monitoring...';
+            resultEl.className = 'result';
+            
+            try {
+                const response = await fetch(`/api/safety-monitoring/disable/${encodeURIComponent(childId)}`, {
+                    method: 'POST'
+                });
+                
+                const result = await response.json();
+                
+                if (response.ok) {
+                    let resultText = `🚫 Safety Monitoring Disabled\n\n`;
+                    resultText += `Child ID: ${childId}\n`;
+                    resultText += `Status: Monitoring deactivated\n`;
+                    resultText += `Add-on Status: Paused (can be reactivated)\n\n`;
+                    resultText += `❌ AI analysis stopped\n`;
+                    resultText += `❌ Real-time alerts disabled\n`;
+                    resultText += `❌ Email notifications paused\n\n`;
+                    resultText += `💡 You can reactivate anytime through your parent portal`;
+                    
+                    showResult(resultEl, resultText, 'warning');
+                } else {
+                    showResult(resultEl, `❌ Error: ${result.message}`, 'error');
+                }
+            } catch (error) {
+                showResult(resultEl, `❌ Error: ${error.message}`, 'error');
+            }
+        }
+        
+        function showResult(element, text, type) {
+            element.textContent = text;
+            element.className = `result ${type}`;
+            element.style.display = 'block';
+        }
+        
+        // Initialize page
+        document.addEventListener('DOMContentLoaded', function() {
+            // Auto-check status on page load
+            setTimeout(() => {
+                if (document.getElementById('childId').value) {
+                    checkSafetyStatus();
+                }
+            }, 500);
+        });
+    </script>
+</body>
+</html>

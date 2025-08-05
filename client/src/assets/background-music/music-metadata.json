@@ -1,0 +1,39 @@
+{
+  "totalFiles": 0,
+  "categorizedFiles": {
+    "creative": [],
+    "playful": [],
+    "peaceful": [],
+    "confident": [],
+    "dreamy": []
+  },
+  "uncategorizedFiles": [],
+  "lastScanned": "2025-08-03T12:06:02.688Z",
+  "categories": {
+    "creative": {
+      "name": "Creative & Artistic",
+      "description": "Inspiring music for creative avatar design",
+      "mood": "inspiring, creative, artistic"
+    },
+    "playful": {
+      "name": "Playful & Fun",
+      "description": "Upbeat music for playful avatar creation",
+      "mood": "happy, energetic, fun"
+    },
+    "peaceful": {
+      "name": "Peaceful & Calm",
+      "description": "Relaxing music for thoughtful avatar design",
+      "mood": "calm, peaceful, relaxing"
+    },
+    "confident": {
+      "name": "Confident & Empowering",
+      "description": "Empowering music for bold avatar choices",
+      "mood": "confident, empowering, strong"
+    },
+    "dreamy": {
+      "name": "Dreamy & Magical",
+      "description": "Fantasy-inspired music for imaginative avatars",
+      "mood": "dreamy, magical, fantasy"
+    }
+  }
+}

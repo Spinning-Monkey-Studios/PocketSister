@@ -110,7 +110,7 @@ export default function TestDashboard() {
           <Alert className="mb-6 border-green-200 bg-green-50 dark:border-green-800 dark:bg-green-950">
             <CheckCircle className="h-4 w-4 text-green-600" />
             <AlertDescription className="text-green-800 dark:text-green-300">
-              <strong>Test Mode Active:</strong> {testModeStatus.message}
+              <strong>Test Mode Active:</strong> {(testModeStatus as any).message}
             </AlertDescription>
           </Alert>
         )}
@@ -194,7 +194,7 @@ export default function TestDashboard() {
         </div>
 
         {/* Test Mode Features List */}
-        {testModeStatus?.features && (
+        {(testModeStatus as any)?.features && (
           <Card className="mt-8">
             <CardHeader>
               <CardTitle>Available Test Features</CardTitle>
@@ -204,7 +204,7 @@ export default function TestDashboard() {
             </CardHeader>
             <CardContent>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                {testModeStatus.features.map((feature: string, index: number) => (
+                {(testModeStatus as any).features.map((feature: string, index: number) => (
                   <div key={index} className="flex items-center space-x-2">
                     <CheckCircle className="w-4 h-4 text-green-500" />
                     <span className="text-sm">{feature}</span>

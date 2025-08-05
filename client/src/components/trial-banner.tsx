@@ -13,7 +13,7 @@ export default function TrialBanner() {
   const queryClient = useQueryClient();
   
   // Get trial status
-  const { data: trialStatus, isLoading } = useQuery({
+  const { data: trialStatus, isLoading } = useQuery<any>({
     queryKey: ["/api/subscription/trial-status"],
     refetchInterval: 5000, // Check every 5 seconds for real-time updates
   });

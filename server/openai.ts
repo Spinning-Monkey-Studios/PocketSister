@@ -1,7 +1,7 @@
 import OpenAI from "openai";
-import { GoogleGenAI } from "@google/genai";
+import { GoogleGenerativeAI } from "@google/generative-ai";
 import { storage } from "./storage";
-import type { User, PersonalityProfile } from "@shared/schema";
+import type { User, ChildProfile, PersonalityProfile } from "@shared/schema";
 
 export type AIProvider = 'openai' | 'gemini' | 'claude';
 
@@ -13,7 +13,7 @@ export interface AIConfig {
 
 export class ChatService {
   private openai: OpenAI | null = null;
-  private gemini: GoogleGenAI | null = null;
+  private gemini: GoogleGenerativeAI | null = null;
   private currentProvider: AIProvider = 'openai';
 
   constructor(config?: AIConfig) {
@@ -30,7 +30,7 @@ export class ChatService {
         this.openai = new OpenAI({ apiKey: config.apiKey });
         break;
       case 'gemini':
-        this.gemini = new GoogleGenAI({ apiKey: config.apiKey });
+        this.gemini = new GoogleGenerativeAI(config.apiKey);
         break;
       case 'claude':
         // Claude integration would go here
@@ -38,13 +38,13 @@ export class ChatService {
     }
   }
 
-  private getPersonalizedPrompt(user: User, personality?: PersonalityProfile): string {
-    const ageGroup = user.age <= 12 ? "younger child" : user.age <= 15 ? "young teen" : "teen";
+  private getPersonalizedPrompt(child: ChildProfile, user: User, personality?: PersonalityProfile): string {
+    const ageGroup = child.age <= 12 ? "younger child" : child.age <= 15 ? "young teen" : "teen";
     const supportLevel = personality?.traits?.supportiveness || 0.8;
     const playfulness = personality?.traits?.playfulness || 0.7;
     const empathy = personality?.traits?.empathy || 0.9;
 
-    return `You are Stella, a caring AI sister and companion for ${user.username}, a ${user.age}-year-old girl. 
+    return `You are ${child.companionName || 'Stella'}, a caring AI sister and companion for ${child.name}, a ${child.age}-year-old girl. 
 
 PERSONALITY TRAITS (scale 0-1):
 - Supportiveness: ${supportLevel}
@@ -52,9 +52,9 @@ PERSONALITY TRAITS (scale 0-1):
 - Empathy: ${empathy}
 
 AGE-APPROPRIATE GUIDELINES for ${ageGroup}:
-- Use language appropriate for a ${user.age}-year-old
-- Focus on ${user.age <= 12 ? 'fun activities, friendship, and building confidence' : 'personal growth, handling challenges, and developing independence'}
-- ${user.age <= 12 ? 'Keep conversations light and encouraging' : 'Can discuss more complex topics like identity, goals, and relationships'}
+- Use language appropriate for a ${child.age}-year-old
+- Focus on ${child.age <= 12 ? 'fun activities, friendship, and building confidence' : 'personal growth, handling challenges, and developing independence'}
+- ${child.age <= 12 ? 'Keep conversations light and encouraging' : 'Can discuss more complex topics like identity, goals, and relationships'}
 
 CORE PRINCIPLES:
 - Always be encouraging, positive, and supportive
@@ -71,7 +71,7 @@ CONVERSATION STYLE:
 - Celebrate achievements and provide comfort during challenges
 - Share relevant tips, activities, or encouragement based on the conversation
 
-Remember: You're building a trusting relationship with ${user.username}. Be consistent, caring, and always prioritize her wellbeing and positive development.`;
+Remember: You're building a trusting relationship with ${child.name}. Be consistent, caring, and always prioritize her wellbeing and positive development.`;
   }
 
   async generateResponse(
@@ -92,8 +92,15 @@ Remember: You're building a trusting relationship with ${user.username}. Be cons
       throw new Error("User not found");
     }
 
+    // Get child profiles for the user
+    const childProfiles = await storage.getChildProfiles(userId);
+    if (childProfiles.length === 0) {
+      throw new Error("No child profile found for user");
+    }
+    
+    const child = childProfiles[0]; // Use first child profile for now
     const personality = await storage.getPersonalityProfile(userId);
-    const systemPrompt = this.getPersonalizedPrompt(user, personality);
+    const systemPrompt = this.getPersonalizedPrompt(child, user, personality);
 
     // Analyze message for metadata
     let metadata: any = {};
@@ -215,17 +222,17 @@ Remember: You're building a trusting relationship with ${user.username}. Be cons
         parts: currentParts
       });
 
-      const response = await this.gemini.models.generateContent({
-        model: "gemini-2.5-flash", // Latest Gemini model
+      const model = this.gemini.getGenerativeModel({ model: "gemini-2.0-flash-exp" });
+      const response = await model.generateContent({
         contents
       });
 
-      const content = response.text || "I'm sorry, I couldn't generate a response right now.";
+      const content = response.response.text() || "I'm sorry, I couldn't generate a response right now.";
 
       // Simple metadata for Gemini (no built-in analysis like OpenAI)
       const metadata = {
         provider: "gemini",
-        model: "gemini-2.5-flash",
+        model: "gemini-2.0-flash-exp",
         hasImage: !!imageData,
         sentiment: "neutral", // Could enhance with separate analysis
         topics: []
@@ -272,30 +279,27 @@ Remember: You're building a trusting relationship with ${user.username}. Be cons
       if (!profile) {
         // Create initial personality profile
         await storage.updatePersonalityProfile(userId, {
-          userId,
           traits: {
             supportiveness: 0.8,
             playfulness: 0.7,
             formality: 0.3,
             empathy: 0.9
           },
-          adaptations: {},
           learningData: {
-            totalInteractions: 1,
-            commonTopics: metadata.topics || [],
-            preferredStyle: "supportive"
+            interactions: 1,
+            positiveResponses: 0,
+            preferredTopics: metadata.topics || [],
+            adaptationNotes: []
           }
         });
       } else {
         // Update existing profile
         const updatedLearningData = {
           ...profile.learningData,
-          totalInteractions: (profile.learningData?.totalInteractions || 0) + 1,
-          lastInteraction: new Date().toISOString(),
-          recentMoods: [
-            ...(profile.learningData?.recentMoods || []).slice(-4), // Keep last 5 moods
-            metadata.mood
-          ].filter(Boolean)
+          interactions: (profile.learningData?.interactions || 0) + 1,
+          positiveResponses: profile.learningData?.positiveResponses || 0,
+          preferredTopics: Array.from(new Set([...(profile.learningData?.preferredTopics || []), ...(metadata.topics || [])])),
+          adaptationNotes: profile.learningData?.adaptationNotes || []
         };
 
         await storage.updatePersonalityProfile(userId, {

@@ -109,6 +109,7 @@ export const pricingPlans = pgTable("pricing_plans", {
   goalTrackingEnabled: boolean("goal_tracking_enabled").default(false), // Goal setting access
   reminderSystemEnabled: boolean("reminder_system_enabled").default(false), // Reminder access
   parentInsightsEnabled: boolean("parent_insights_enabled").default(false), // Parent wellness insights
+  includesSafetyMonitoring: boolean("includes_safety_monitoring").default(false), // Family tier includes it
   createdAt: timestamp("created_at").defaultNow(),
 });
 
@@ -316,6 +317,386 @@ export type InsertAnnouncementType = z.infer<typeof insertAnnouncementSchema>;
 export type InsertConversationType = z.infer<typeof insertConversationSchema>;
 export type InsertMessageType = z.infer<typeof insertMessageSchema>;
 
+// Stage 3: Advanced AI Personalization - Conversation Memory System
+export const conversationMemory = pgTable("conversation_memory", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  childId: varchar("child_id").notNull(),
+  memoryType: varchar("memory_type").notNull(), // 'fact', 'preference', 'emotion', 'achievement', 'concern'
+  content: text("content").notNull(),
+  importance: integer("importance").default(5), // 1-10 scale
+  emotionalContext: jsonb("emotional_context").default('{}'),
+  relatedTopics: text("related_topics").array().default(sql`ARRAY[]::text[]`),
+  lastReferenced: timestamp("last_referenced"),
+  createdAt: timestamp("created_at").defaultNow(),
+  isActive: boolean("is_active").default(true)
+});
+
+// Stage 3: AI Learning and Adaptation Tracking
+export const aiLearningData = pgTable("ai_learning_data", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  childId: varchar("child_id").notNull(),
+  interactionType: varchar("interaction_type").notNull(), // 'chat', 'mood', 'goal', 'affirmation'
+  userInput: text("user_input"),
+  aiResponse: text("ai_response"),
+  userReaction: varchar("user_reaction"), // 'positive', 'negative', 'neutral', 'ignored'
+  emotionalTone: varchar("emotional_tone"), // detected from input
+  personalityAdaptation: jsonb("personality_adaptation").default('{}'),
+  learningScore: decimal("learning_score", { precision: 3, scale: 2 }),
+  createdAt: timestamp("created_at").defaultNow()
+});
+
+// Stage 3: Emotional Intelligence Tracking
+export const emotionalProfiles = pgTable("emotional_profiles", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  childId: varchar("child_id").notNull(),
+  currentMoodPattern: jsonb("current_mood_pattern").default('{}'),
+  emotionalTriggers: jsonb("emotional_triggers").default('{}'),
+  copingStrategies: jsonb("coping_strategies").default('{}'),
+  communicationStyle: jsonb("communication_style").default('{}'),
+  growthAreas: text("growth_areas").array().default(sql`ARRAY[]::text[]`),
+  strengths: text("strengths").array().default(sql`ARRAY[]::text[]`),
+  lastAnalysis: timestamp("last_analysis").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow()
+});
+
+// Stage 3: Enhanced Conversation History with Advanced Context
+export const enhancedConversationHistory = pgTable("enhanced_conversation_history", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  childId: varchar("child_id").notNull(),
+  sessionId: varchar("session_id").notNull(),
+  messageOrder: integer("message_order").notNull(),
+  role: varchar("role").notNull(), // 'user', 'assistant'
+  content: text("content").notNull(),
+  emotionalContext: jsonb("emotional_context").default('{}'),
+  personalityUsed: varchar("personality_used"), // which avatar personality was used
+  memoryReferences: text("memory_references").array().default(sql`ARRAY[]::text[]`),
+  adaptationApplied: jsonb("adaptation_applied").default('{}'),
+  createdAt: timestamp("created_at").defaultNow()
+});
+
+export type ConversationMemory = typeof conversationMemory.$inferSelect;
+export type InsertConversationMemory = typeof conversationMemory.$inferInsert;
+export type AiLearningData = typeof aiLearningData.$inferSelect;
+export type InsertAiLearningData = typeof aiLearningData.$inferInsert; 
+export type EmotionalProfile = typeof emotionalProfiles.$inferSelect;
+export type InsertEmotionalProfile = typeof emotionalProfiles.$inferInsert;
+export type EnhancedConversationHistory = typeof enhancedConversationHistory.$inferSelect;
+export type InsertEnhancedConversationHistory = typeof enhancedConversationHistory.$inferInsert;
+
+// Stage 5: Conversation Management System - Saved conversations with intelligent naming
+export const savedConversations = pgTable("saved_conversations", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  childId: varchar("child_id").notNull(),
+  title: text("title").notNull(), // AI-generated title
+  description: text("description"), // Brief AI-generated description
+  groupId: varchar("group_id"), // Optional group assignment
+  lastMessageAt: timestamp("last_message_at").notNull(),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+  isActive: boolean("is_active").default(true).notNull(), // For soft delete
+  messageCount: integer("message_count").default(0).notNull(),
+  isTabOpen: boolean("is_tab_open").default(false).notNull(), // Track if conversation is open in a tab
+  contextSnapshot: text("context_snapshot"), // JSON snapshot of context when saved
+});
+
+// Conversation groups for organization
+export const conversationGroups = pgTable("conversation_groups", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  childId: varchar("child_id").notNull(),
+  name: text("name").notNull(),
+  color: text("color").default("#3B82F6").notNull(), // Hex color code
+  icon: text("icon").default("💬").notNull(), // Emoji icon
+  position: integer("position").default(0).notNull(), // For ordering
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+});
+
+// Messages within saved conversations
+export const conversationMessages = pgTable("conversation_messages", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  conversationId: varchar("conversation_id").notNull(),
+  childId: varchar("child_id").notNull(),
+  role: text("role").notNull(), // 'user' or 'assistant'
+  content: text("content").notNull(),
+  timestamp: timestamp("timestamp").defaultNow().notNull(),
+  contextSnapshot: text("context_snapshot"), // JSON snapshot of context at time of message
+});
+
+export type SavedConversation = typeof savedConversations.$inferSelect;
+export type InsertSavedConversation = typeof savedConversations.$inferInsert;
+export type ConversationGroup = typeof conversationGroups.$inferSelect;
+
+// Safety monitoring for concerning behavior - preserves child privacy
+export const safetyAlerts = pgTable("safety_alerts", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  childId: varchar("child_id").notNull().references(() => childProfiles.id),
+  userId: varchar("user_id").notNull().references(() => users.id), // Parent to notify
+  alertType: varchar("alert_type").notNull(), // 'safety_concern', 'inappropriate_content', 'bullying_detected', 'self_harm_concern'
+  severity: varchar("severity").notNull(), // 'low', 'medium', 'high', 'critical'
+  triggerKeywords: text("trigger_keywords").array().default(sql`ARRAY[]::text[]`), // What triggered the alert
+  contextSummary: text("context_summary"), // Non-identifying summary for parent
+  messageId: varchar("message_id").references(() => conversationMessages.id), // Reference for admin review
+  isResolved: boolean("is_resolved").default(false),
+  parentNotified: boolean("parent_notified").default(false),
+  adminReviewed: boolean("admin_reviewed").default(false),
+  reviewNotes: text("review_notes"),
+  createdAt: timestamp("created_at").defaultNow(),
+  resolvedAt: timestamp("resolved_at"),
+});
+
+// Parent-controlled settings for child profiles
+export const parentControls = pgTable("parent_controls", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  childId: varchar("child_id").notNull().references(() => childProfiles.id),
+  parentId: varchar("parent_id").notNull().references(() => users.id),
+  ageOverride: integer("age_override"), // Parent can set/update child's age
+  personalitySettings: jsonb("personality_settings").default({}), // Parent-controlled personality traits
+  safetyLevel: varchar("safety_level").default("standard"), // 'strict', 'standard', 'relaxed'
+  allowedTopics: text("allowed_topics").array().default(sql`ARRAY[]::text[]`),
+  blockedTopics: text("blocked_topics").array().default(sql`ARRAY[]::text[]`),
+  chatTimeRestrictions: jsonb("chat_time_restrictions").default({}), // Time limits
+  requireApprovalFor: text("require_approval_for").array().default(sql`ARRAY[]::text[]`), // Features requiring approval
+  privacySettings: jsonb("privacy_settings").default({}),
+  emergencyContactsOnly: boolean("emergency_contacts_only").default(false),
+  alertThresholds: jsonb("alert_thresholds").default({
+    critical: true,
+    high: true, 
+    medium: false,
+    low: false,
+    confidenceMinimum: 0.7
+  }), // Configurable alert sensitivity
+  safetyMonitoringEnabled: boolean("safety_monitoring_enabled").default(false), // Requires subscription add-on
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
+// Safety Monitoring Add-on (for Basic/Premium tiers)
+export const safetyMonitoringAddons = pgTable("safety_monitoring_addons", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  userId: varchar("user_id").notNull().references(() => users.id),
+  childId: varchar("child_id").notNull().references(() => childProfiles.id),
+  isActive: boolean("is_active").default(true),
+  price: decimal("price", { precision: 10, scale: 2 }).default("9.99"), // Monthly add-on price
+  purchaseDate: timestamp("purchase_date").defaultNow(),
+  expiresAt: timestamp("expires_at"), // For monthly billing
+  stripeSubscriptionId: varchar("stripe_subscription_id"), // Track Stripe subscription
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
+// Content monitoring with privacy protection
+export const contentReviews = pgTable("content_reviews", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  childId: varchar("child_id").notNull().references(() => childProfiles.id),
+  messageId: varchar("message_id").references(() => conversationMessages.id),
+  contentType: varchar("content_type").notNull(), // 'message', 'image', 'voice'
+  riskLevel: varchar("risk_level").notNull(), // 'safe', 'monitor', 'concern', 'alert'
+  flaggedReasons: text("flagged_reasons").array().default(sql`ARRAY[]::text[]`),
+  aiConfidence: decimal("ai_confidence", { precision: 3, scale: 2 }), // 0.00-1.00
+  requiresHumanReview: boolean("requires_human_review").default(false),
+  humanReviewed: boolean("human_reviewed").default(false),
+  reviewerNotes: text("reviewer_notes"),
+  actionTaken: varchar("action_taken"), // 'none', 'parent_notified', 'content_blocked', 'session_ended'
+  createdAt: timestamp("created_at").defaultNow(),
+  reviewedAt: timestamp("reviewed_at"),
+});
+
+export type SafetyAlert = typeof safetyAlerts.$inferSelect;
+export type InsertSafetyAlert = typeof safetyAlerts.$inferInsert;
+export type ParentControl = typeof parentControls.$inferSelect;
+export type InsertParentControl = typeof parentControls.$inferInsert;
+export type ContentReview = typeof contentReviews.$inferSelect;
+export type InsertContentReview = typeof contentReviews.$inferInsert;
+export type InsertConversationGroup = typeof conversationGroups.$inferInsert;
+export type ConversationMessage = typeof conversationMessages.$inferSelect;
+export type InsertConversationMessage = typeof conversationMessages.$inferInsert;
+export type SafetyMonitoringAddon = typeof safetyMonitoringAddons.$inferSelect;
+export type InsertSafetyMonitoringAddon = typeof safetyMonitoringAddons.$inferInsert;
+
+// Parent-to-child messaging system
+export const parentMessages = pgTable("parent_messages", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  parentId: varchar("parent_id").notNull().references(() => users.id),
+  childId: varchar("child_id").notNull().references(() => childProfiles.id),
+  message: text("message").notNull(),
+  messageType: varchar("message_type").default("general"), // general, encouragement, reminder, achievement
+  scheduledFor: timestamp("scheduled_for"), // For scheduled messages
+  sentAt: timestamp("sent_at"),
+  deliveredAt: timestamp("delivered_at"),
+  readAt: timestamp("read_at"),
+  isRead: boolean("is_read").default(false),
+  isDelivered: boolean("is_delivered").default(false),
+  priority: varchar("priority").default("normal"), // low, normal, high, urgent
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
+// Child app activation and device management
+export const childDevices = pgTable("child_devices", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  childId: varchar("child_id").notNull().references(() => childProfiles.id),
+  deviceId: varchar("device_id").notNull().unique(), // Unique device identifier
+  deviceName: varchar("device_name"), // User-friendly device name
+  platform: varchar("platform").notNull(), // android, ios
+  appVersion: varchar("app_version"),
+  isActivated: boolean("is_activated").default(false),
+  activatedAt: timestamp("activated_at"),
+  activatedBy: varchar("activated_by").references(() => users.id), // Parent who activated
+  lastSeenAt: timestamp("last_seen_at").defaultNow(),
+  pushToken: varchar("push_token"), // For push notifications
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
+// GPS location tracking (privacy-compliant)
+export const childLocations = pgTable("child_locations", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  childId: varchar("child_id").notNull().references(() => childProfiles.id),
+  deviceId: varchar("device_id").notNull().references(() => childDevices.id),
+  latitude: decimal("latitude", { precision: 10, scale: 8 }).notNull(),
+  longitude: decimal("longitude", { precision: 11, scale: 8 }).notNull(),
+  accuracy: decimal("accuracy", { precision: 8, scale: 2 }), // in meters
+  timestamp: timestamp("timestamp").defaultNow().notNull(),
+  isEmergency: boolean("is_emergency").default(false), // Emergency location request
+  batteryLevel: integer("battery_level"), // Device battery percentage
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
+// Location settings and permissions
+export const locationSettings = pgTable("location_settings", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  childId: varchar("child_id").notNull().references(() => childProfiles.id).unique(),
+  parentId: varchar("parent_id").notNull().references(() => users.id),
+  isLocationEnabled: boolean("is_location_enabled").default(false),
+  trackingInterval: integer("tracking_interval").default(30), // minutes
+  shareLocationWithParent: boolean("share_location_with_parent").default(false),
+  onlyEmergencyTracking: boolean("only_emergency_tracking").default(true),
+  allowedTimeStart: varchar("allowed_time_start").default("06:00"), // 24h format
+  allowedTimeEnd: varchar("allowed_time_end").default("22:00"),
+  geofenceEnabled: boolean("geofence_enabled").default(false),
+  geofenceRadius: integer("geofence_radius").default(500), // meters
+  geofenceLatitude: decimal("geofence_latitude", { precision: 10, scale: 8 }),
+  geofenceLongitude: decimal("geofence_longitude", { precision: 11, scale: 8 }),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
+// App activation requests (for parent approval)
+export const activationRequests = pgTable("activation_requests", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  childId: varchar("child_id").notNull().references(() => childProfiles.id),
+  deviceId: varchar("device_id").notNull(),
+  deviceInfo: jsonb("device_info"), // Device details for parent review
+  requestedAt: timestamp("requested_at").defaultNow(),
+  approvedAt: timestamp("approved_at"),
+  rejectedAt: timestamp("rejected_at"),
+  approvedBy: varchar("approved_by").references(() => users.id),
+  status: varchar("status").default("pending"), // pending, approved, rejected
+  parentNotified: boolean("parent_notified").default(false),
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
+export type ParentMessage = typeof parentMessages.$inferSelect;
+export type InsertParentMessage = typeof parentMessages.$inferInsert;
+export type ChildDevice = typeof childDevices.$inferSelect;
+export type InsertChildDevice = typeof childDevices.$inferInsert;
+export type ChildLocation = typeof childLocations.$inferSelect;
+export type InsertChildLocation = typeof childLocations.$inferInsert;
+export type LocationSetting = typeof locationSettings.$inferSelect;
+export type InsertLocationSetting = typeof locationSettings.$inferInsert;
+export type ActivationRequest = typeof activationRequests.$inferSelect;
+export type InsertActivationRequest = typeof activationRequests.$inferInsert;
+
+export const insertSavedConversationSchema = createInsertSchema(savedConversations);
+export const insertConversationGroupSchema = createInsertSchema(conversationGroups);
+export const insertConversationMessageSchema = createInsertSchema(conversationMessages);
+
+// Stage 4: Advanced Context Management for Remote AI Integration
+export const contextSessions = pgTable("context_sessions", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  sessionId: varchar("session_id").notNull().unique(),
+  childId: varchar("child_id").notNull(),
+  aiProvider: varchar("ai_provider").notNull().default("gemini"), // "gemini", "openai", etc.
+  systemIdentity: jsonb("system_identity").default('{}'), // unique system signature
+  startTime: timestamp("start_time").defaultNow(),
+  lastActivity: timestamp("last_activity").defaultNow(),
+  contextLength: integer("context_length").default(0),
+  performanceMetrics: jsonb("performance_metrics").default('{}'),
+  status: varchar("status").default("active"), // "active", "inactive", "expired"
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
+export const contextRetrievalLogs = pgTable("context_retrieval_logs", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  sessionId: varchar("session_id").notNull(),
+  retrievalType: varchar("retrieval_type").notNull(), // "memory", "interests", "personality", "history"
+  startTime: timestamp("start_time").notNull(),
+  endTime: timestamp("end_time"),
+  responseTime: integer("response_time"), // milliseconds
+  dataSize: integer("data_size"), // bytes
+  success: boolean("success").default(false),
+  errorMessage: text("error_message"),
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
+export const aiInstanceManagement = pgTable("ai_instance_management", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  instanceId: varchar("instance_id").notNull().unique(),
+  sessionId: varchar("session_id").notNull(),
+  instanceType: varchar("instance_type").notNull(), // "primary", "backup-smalltalk"
+  status: varchar("status").default("active"), // "active", "standby", "processing", "terminated"
+  spawnReason: varchar("spawn_reason"), // "timeout", "load", "manual"
+  startTime: timestamp("start_time").defaultNow(),
+  endTime: timestamp("end_time"),
+  performanceScore: decimal("performance_score", { precision: 3, scale: 2 }),
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
+export const remoteContextCache = pgTable("remote_context_cache", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  childId: varchar("child_id").notNull(),
+  contextType: varchar("context_type").notNull(), // "interests", "memories", "personality", "recent_history"
+  contextData: jsonb("context_data").notNull(),
+  lastUpdated: timestamp("last_updated").defaultNow(),
+  expiresAt: timestamp("expires_at").notNull(),
+  priority: integer("priority").default(5), // 1-10 scale for cache eviction
+  accessCount: integer("access_count").default(0),
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
+// Context Management Types
+export type ContextSession = typeof contextSessions.$inferSelect;
+export type InsertContextSession = typeof contextSessions.$inferInsert;
+export type ContextRetrievalLog = typeof contextRetrievalLogs.$inferSelect;
+export type InsertContextRetrievalLog = typeof contextRetrievalLogs.$inferInsert;
+export type AiInstanceManagement = typeof aiInstanceManagement.$inferSelect;
+export type InsertAiInstanceManagement = typeof aiInstanceManagement.$inferInsert;
+export type RemoteContextCache = typeof remoteContextCache.$inferSelect;
+export type InsertRemoteContextCache = typeof remoteContextCache.$inferInsert;
+
+// Stage 4: Avatar Creation Game Enhancement
+export const avatarConfigurations = pgTable("avatar_configurations", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  childId: varchar("child_id").notNull(),
+  name: varchar("name").notNull(),
+  configData: jsonb("config_data").notNull(),
+  isActive: boolean("is_active").default(false),
+  unlockLevel: integer("unlock_level").default(1),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
+export const avatarUnlocks = pgTable("avatar_unlocks", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  childId: varchar("child_id").notNull(),
+  itemCategory: varchar("item_category").notNull(),
+  itemId: varchar("item_id").notNull(),
+  unlockedAt: timestamp("unlocked_at").defaultNow(),
+  unlockReason: varchar("unlock_reason"),
+});
+
+export type AvatarConfiguration = typeof avatarConfigurations.$inferSelect;
+export type InsertAvatarConfiguration = typeof avatarConfigurations.$inferInsert;
+export type AvatarUnlock = typeof avatarUnlocks.$inferSelect;
+export type InsertAvatarUnlock = typeof avatarUnlocks.$inferInsert;
+
 // Token usage tracking for billing and limits (replacing message usage)
 export const tokenUsageHistory = pgTable("token_usage_history", {
   id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
@@ -460,6 +841,28 @@ export type NotificationPreferences = typeof notificationPreferences.$inferSelec
 export type InsertNotificationPreferences = typeof notificationPreferences.$inferInsert;
 export type TokenUsage = typeof tokenUsage.$inferSelect;
 export type InsertTokenUsage = typeof tokenUsage.$inferInsert;
+
+// PersonalityProfile type for AI personalization
+export interface PersonalityProfile {
+  traits?: {
+    supportiveness?: number;
+    playfulness?: number;
+    empathy?: number;
+    enthusiasm?: number;
+    patience?: number;
+    formality?: number;
+  };
+  communicationStyle?: string;
+  interests?: string[];
+  preferredTopics?: string[];
+  adaptationLevel?: number;
+  learningData?: {
+    interactions: number;
+    positiveResponses: number;
+    preferredTopics: string[];
+    adaptationNotes: string[];
+  };
+}
 
 export const insertUsageAlertSchema = createInsertSchema(usageAlerts);
 export const insertTokenUsageHistorySchema = createInsertSchema(tokenUsageHistory);

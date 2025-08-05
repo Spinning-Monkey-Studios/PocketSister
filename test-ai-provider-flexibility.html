@@ -1,0 +1,672 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI Provider Flexibility System Test</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+            line-height: 1.6;
+        }
+        
+        .test-section {
+            background: #f8f9fa;
+            border: 1px solid #e9ecef;
+            border-radius: 8px;
+            padding: 20px;
+            margin: 20px 0;
+        }
+        
+        .button {
+            background: #007bff;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            margin: 5px;
+        }
+        
+        .button:hover {
+            background: #0056b3;
+        }
+        
+        .button.provider-gemini {
+            background: #4285f4;
+        }
+        
+        .button.provider-openai {
+            background: #10a37f;
+        }
+        
+        .button.provider-anthropic {
+            background: #c55a11;
+        }
+        
+        .button.admin {
+            background: #dc3545;
+        }
+        
+        .result {
+            background: white;
+            border: 1px solid #dee2e6;
+            border-radius: 4px;
+            padding: 15px;
+            margin: 10px 0;
+            white-space: pre-wrap;
+            font-family: monospace;
+        }
+        
+        .success {
+            color: #155724;
+            background: #d4edda;
+            border-color: #c3e6cb;
+        }
+        
+        .info {
+            color: #0c5460;
+            background: #d1ecf1;
+            border-color: #bee5eb;
+        }
+        
+        .warning {
+            color: #856404;
+            background: #fff3cd;
+            border-color: #ffeaa7;
+        }
+        
+        .error {
+            color: #721c24;
+            background: #f8d7da;
+            border-color: #f5c6cb;
+        }
+        
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+            gap: 20px;
+        }
+
+        .provider-status {
+            background: white;
+            border: 2px solid #dee2e6;
+            border-radius: 8px;
+            padding: 15px;
+            margin: 10px 0;
+        }
+
+        .provider-active {
+            border-color: #28a745;
+            background: #f8fff9;
+        }
+
+        .provider-inactive {
+            border-color: #6c757d;
+            background: #f8f9fa;
+        }
+
+        .provider-name {
+            font-weight: bold;
+            font-size: 16px;
+            margin-bottom: 8px;
+        }
+
+        .provider-details {
+            color: #6c757d;
+            font-size: 14px;
+            margin: 4px 0;
+        }
+
+        .capabilities {
+            margin: 10px 0;
+        }
+
+        .capability {
+            display: inline-block;
+            background: #e9ecef;
+            color: #495057;
+            padding: 2px 8px;
+            border-radius: 4px;
+            margin: 2px;
+            font-size: 12px;
+        }
+
+        .capability.supported {
+            background: #d1ecf1;
+            color: #0c5460;
+        }
+
+        .architecture-diagram {
+            background: white;
+            border: 2px solid #dee2e6;
+            border-radius: 8px;
+            padding: 20px;
+            text-align: center;
+            margin: 15px 0;
+            font-family: monospace;
+        }
+
+        .microservice-box {
+            background: #e3f2fd;
+            border: 2px solid #2196f3;
+            border-radius: 8px;
+            padding: 10px;
+            margin: 10px;
+            display: inline-block;
+        }
+
+        .app-box {
+            background: #f3e5f5;
+            border: 2px solid #9c27b0;
+            border-radius: 8px;
+            padding: 10px;
+            margin: 10px;
+            display: inline-block;
+        }
+
+        .benefits-list {
+            list-style: none;
+            padding: 0;
+        }
+
+        .benefits-list li {
+            background: #e8f5e8;
+            border-left: 4px solid #28a745;
+            padding: 10px 15px;
+            margin: 8px 0;
+            border-radius: 4px;
+        }
+
+        .costs-comparison {
+            background: white;
+            border: 1px solid #dee2e6;
+            border-radius: 8px;
+            padding: 15px;
+            margin: 10px 0;
+        }
+
+        .cost-row {
+            display: flex;
+            justify-content: space-between;
+            padding: 8px 0;
+            border-bottom: 1px solid #eee;
+        }
+
+        .admin-panel {
+            background: #fff3cd;
+            border: 1px solid #ffeaa7;
+            border-radius: 8px;
+            padding: 15px;
+            margin: 10px 0;
+        }
+
+        .feature-highlight {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 20px;
+            border-radius: 12px;
+            margin: 20px 0;
+            text-align: center;
+        }
+    </style>
+</head>
+<body>
+    <h1>🔗 AI Provider Flexibility & Microservice Architecture</h1>
+    
+    <div class="feature-highlight">
+        <h2>🚀 Complete Vendor Independence</h2>
+        <p>Switch between Gemini, OpenAI, Claude, and custom AI providers through admin controls without code changes</p>
+    </div>
+
+    <div class="test-section">
+        <h2>📋 Current Provider Status</h2>
+        <button class="button admin" onclick="getProviderStatus()">Get Current Status</button>
+        <button class="button" onclick="refreshStatus()">Refresh Status</button>
+        <div id="providerStatusResult" class="result" style="display: none;"></div>
+        <div id="providerCards"></div>
+    </div>
+
+    <div class="grid">
+        <div class="test-section">
+            <h2>🔄 Provider Switching</h2>
+            <button class="button provider-gemini" onclick="switchProvider('gemini-default')">Switch to Gemini</button>
+            <button class="button provider-openai" onclick="switchProvider('openai-gpt4')">Switch to OpenAI</button>
+            <button class="button provider-anthropic" onclick="switchProvider('claude-sonnet')">Switch to Claude</button>
+            <div id="switchResult" class="result" style="display: none;"></div>
+        </div>
+
+        <div class="test-section">
+            <h2>🧪 Provider Testing</h2>
+            <button class="button" onclick="testProvider('gemini-default', 'Hello, test message!')">Test Gemini</button>
+            <button class="button" onclick="testProvider('openai-gpt4', 'Hello, test message!')">Test OpenAI</button>
+            <button class="button" onclick="testProvider('claude-sonnet', 'Hello, test message!')">Test Claude</button>
+            <div id="testResult" class="result" style="display: none;"></div>
+        </div>
+
+        <div class="test-section">
+            <h2>➕ Add New Provider</h2>
+            <button class="button" onclick="showAddProviderForm()">Add Provider</button>
+            <button class="button" onclick="addSampleProviders()">Add Sample Providers</button>
+            <div id="addProviderForm" style="display: none;">
+                <input type="text" id="providerId" placeholder="Provider ID" style="margin: 5px; padding: 8px;">
+                <select id="providerType" style="margin: 5px; padding: 8px;">
+                    <option value="google">Google Gemini</option>
+                    <option value="openai">OpenAI GPT</option>
+                    <option value="anthropic">Anthropic Claude</option>
+                </select>
+                <input type="text" id="apiKey" placeholder="API Key" style="margin: 5px; padding: 8px;">
+                <button class="button" onclick="addProvider()">Add</button>
+            </div>
+            <div id="addResult" class="result" style="display: none;"></div>
+        </div>
+    </div>
+
+    <div class="test-section">
+        <h2>🏗️ Microservice Architecture Benefits</h2>
+        
+        <div class="architecture-diagram">
+            <h3>Current vs Proposed Architecture</h3>
+            <div style="display: flex; justify-content: space-around; align-items: center;">
+                <div>
+                    <h4>❌ Current (Tightly Coupled)</h4>
+                    <div class="app-box">My Pocket Sister App</div>
+                    <div>⬇️ Direct Integration</div>
+                    <div class="microservice-box">Google Gemini SDK</div>
+                </div>
+                <div style="font-size: 24px;">→</div>
+                <div>
+                    <h4>✅ Proposed (Flexible)</h4>
+                    <div class="app-box">My Pocket Sister App</div>
+                    <div>⬇️ Unified API</div>
+                    <div class="microservice-box">AI Gateway Service</div>
+                    <div>⬇️ Provider Adapters</div>
+                    <div style="display: flex;">
+                        <div class="microservice-box" style="font-size: 12px;">Gemini</div>
+                        <div class="microservice-box" style="font-size: 12px;">OpenAI</div>
+                        <div class="microservice-box" style="font-size: 12px;">Claude</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <ul class="benefits-list">
+            <li><strong>Vendor Independence</strong> - Switch AI providers without code changes</li>
+            <li><strong>Cost Optimization</strong> - Route requests to cheapest suitable provider</li>
+            <li><strong>Performance</strong> - Intelligent caching and connection pooling</li>
+            <li><strong>Reliability</strong> - Automatic failover when providers are down</li>
+            <li><strong>A/B Testing</strong> - Compare provider performance side-by-side</li>
+            <li><strong>Negotiating Power</strong> - Leverage multiple providers for better pricing</li>
+        </ul>
+    </div>
+
+    <div class="test-section">
+        <h2>💰 Cost Optimization Features</h2>
+        
+        <div class="costs-comparison">
+            <h3>Provider Cost Comparison (per 1M tokens)</h3>
+            <div class="cost-row">
+                <span><strong>Google Gemini Pro</strong></span>
+                <span>$1.25</span>
+            </div>
+            <div class="cost-row">
+                <span><strong>OpenAI GPT-4 Turbo</strong></span>
+                <span>$10.00</span>
+            </div>
+            <div class="cost-row">
+                <span><strong>Anthropic Claude 3.5 Sonnet</strong></span>
+                <span>$3.00</span>
+            </div>
+            <div class="cost-row">
+                <span><strong>Custom Microservice</strong></span>
+                <span>$0.50</span>
+            </div>
+        </div>
+
+        <p><strong>Smart Routing Strategy:</strong></p>
+        <ul>
+            <li>Simple questions → Gemini (cheapest)</li>
+            <li>Complex reasoning → Claude (best performance)</li>
+            <li>Creative tasks → GPT-4 (most creative)</li>
+            <li>Bulk processing → Custom microservice (fastest)</li>
+        </ul>
+    </div>
+
+    <div class="test-section">
+        <h2>⚙️ Admin Control Features</h2>
+        
+        <div class="admin-panel">
+            <h3>🛠️ Administrator Capabilities</h3>
+            <ul>
+                <li><strong>Real-time Provider Switching</strong> - Change AI provider instantly</li>
+                <li><strong>Performance Monitoring</strong> - Track response times and success rates</li>
+                <li><strong>Cost Analytics</strong> - Monitor spending across all providers</li>
+                <li><strong>A/B Testing Controls</strong> - Route percentage of traffic to different providers</li>
+                <li><strong>Feature Mapping</strong> - Assign optimal providers to specific app features</li>
+                <li><strong>Rate Limiting</strong> - Control usage and prevent overages</li>
+                <li><strong>Fallback Configuration</strong> - Set backup providers for reliability</li>
+            </ul>
+        </div>
+
+        <button class="button admin" onclick="demonstrateAdminFeatures()">Show Admin Dashboard Mock</button>
+        <div id="adminDemoResult" style="display: none;"></div>
+    </div>
+
+    <div class="test-section">
+        <h2>🎯 Specific Features Enabled by Microservice</h2>
+        
+        <h3>🔧 Technical Capabilities</h3>
+        <ul>
+            <li><strong>Cross-Provider Context Sharing</strong> - Maintain conversation context when switching providers</li>
+            <li><strong>Intelligent Function Calling</strong> - Route function calls to providers that support them best</li>
+            <li><strong>Advanced Caching</strong> - Unified caching across all providers</li>
+            <li><strong>Request Batching</strong> - Optimize API calls for cost and performance</li>
+            <li><strong>Geographic Routing</strong> - Use closest provider for lower latency</li>
+        </ul>
+
+        <h3>🎨 User Experience Features</h3>
+        <ul>
+            <li><strong>Seamless Avatar Analysis</strong> - Best AI for image understanding</li>
+            <li><strong>Optimized Chat Responses</strong> - Fast provider for quick questions, smart provider for complex ones</li>
+            <li><strong>Feature-Specific AI</strong> - Specialized AI for different app features</li>
+            <li><strong>Personalization Engine</strong> - AI provider selection based on user preferences</li>
+        </ul>
+    </div>
+
+    <script>
+        // Provider management functions
+        async function apiCall(endpoint, method = 'GET', data = null) {
+            try {
+                const options = {
+                    method,
+                    headers: { 'Content-Type': 'application/json' }
+                };
+                
+                if (data) {
+                    options.body = JSON.stringify(data);
+                }
+
+                const response = await fetch(endpoint, options);
+                const result = await response.json();
+                
+                return {
+                    success: response.ok,
+                    status: response.status,
+                    data: result
+                };
+            } catch (error) {
+                return {
+                    success: false,
+                    error: error.message
+                };
+            }
+        }
+
+        function showResult(elementId, content, type = 'info') {
+            const element = document.getElementById(elementId);
+            element.className = `result ${type}`;
+            element.textContent = content;
+            element.style.display = 'block';
+        }
+
+        function formatJsonResult(elementId, data, type = 'info') {
+            const element = document.getElementById(elementId);
+            element.className = `result ${type}`;
+            element.textContent = JSON.stringify(data, null, 2);
+            element.style.display = 'block';
+        }
+
+        // Provider status functions
+        async function getProviderStatus() {
+            showResult('providerStatusResult', 'Getting AI provider status...', 'info');
+            const result = await apiCall('/api/admin/ai-providers');
+            
+            if (result.success) {
+                formatJsonResult('providerStatusResult', result.data, 'success');
+                updateProviderCards(result.data.providers);
+            } else {
+                formatJsonResult('providerStatusResult', result.data || result, 'error');
+            }
+        }
+
+        function updateProviderCards(providers) {
+            const container = document.getElementById('providerCards');
+            
+            // Sample provider data for demonstration
+            const sampleProviders = [
+                {
+                    id: 'gemini-default',
+                    name: 'Google Gemini Pro',
+                    active: providers.activeProvider === 'gemini-default',
+                    capabilities: ['chat', 'contextCaching', 'functionCalling', 'imageAnalysis'],
+                    cost: '$1.25/1M tokens',
+                    latency: '150ms avg'
+                },
+                {
+                    id: 'openai-gpt4',
+                    name: 'OpenAI GPT-4 Turbo',
+                    active: providers.activeProvider === 'openai-gpt4',
+                    capabilities: ['chat', 'functionCalling', 'imageAnalysis', 'voiceSynthesis'],
+                    cost: '$10.00/1M tokens',
+                    latency: '200ms avg'
+                },
+                {
+                    id: 'claude-sonnet',
+                    name: 'Anthropic Claude 3.5 Sonnet',
+                    active: providers.activeProvider === 'claude-sonnet',
+                    capabilities: ['chat', 'functionCalling', 'imageAnalysis'],
+                    cost: '$3.00/1M tokens',
+                    latency: '180ms avg'
+                }
+            ];
+
+            container.innerHTML = sampleProviders.map(provider => `
+                <div class="provider-status ${provider.active ? 'provider-active' : 'provider-inactive'}">
+                    <div class="provider-name">${provider.name} ${provider.active ? '(ACTIVE)' : ''}</div>
+                    <div class="provider-details">ID: ${provider.id}</div>
+                    <div class="provider-details">Cost: ${provider.cost}</div>
+                    <div class="provider-details">Latency: ${provider.latency}</div>
+                    <div class="capabilities">
+                        ${provider.capabilities.map(cap => 
+                            `<span class="capability supported">${cap}</span>`
+                        ).join('')}
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        async function refreshStatus() {
+            await getProviderStatus();
+        }
+
+        // Provider switching functions
+        async function switchProvider(providerId) {
+            showResult('switchResult', `Switching to provider: ${providerId}...`, 'info');
+            const result = await apiCall('/api/admin/ai-providers/switch', 'POST', { providerId });
+            
+            if (result.success) {
+                formatJsonResult('switchResult', result.data, 'success');
+                // Refresh status to show updated active provider
+                setTimeout(() => getProviderStatus(), 500);
+            } else {
+                formatJsonResult('switchResult', result.data || result, 'error');
+            }
+        }
+
+        // Provider testing functions
+        async function testProvider(providerId, testMessage) {
+            showResult('testResult', `Testing provider: ${providerId}...`, 'info');
+            const result = await apiCall('/api/admin/ai-providers/test', 'POST', { 
+                providerId, 
+                testMessage 
+            });
+            
+            if (result.success) {
+                formatJsonResult('testResult', result.data, 'success');
+            } else {
+                formatJsonResult('testResult', result.data || result, 'warning');
+            }
+        }
+
+        // Add provider functions
+        function showAddProviderForm() {
+            document.getElementById('addProviderForm').style.display = 'block';
+        }
+
+        async function addProvider() {
+            const config = {
+                id: document.getElementById('providerId').value,
+                provider: document.getElementById('providerType').value,
+                apiKey: document.getElementById('apiKey').value,
+                name: `Custom ${document.getElementById('providerType').value}`,
+                endpoint: 'https://api.example.com',
+                model: 'default',
+                isActive: true,
+                priority: 2,
+                costPerToken: 0.001,
+                rateLimit: {
+                    requestsPerMinute: 60,
+                    tokensPerMinute: 100000
+                },
+                capabilities: {
+                    chat: true,
+                    contextCaching: false,
+                    functionCalling: true,
+                    imageAnalysis: false,
+                    voiceSynthesis: false,
+                    streamingResponse: true,
+                    batchProcessing: false
+                },
+                configuration: {
+                    temperature: 0.7,
+                    maxTokens: 2048,
+                    systemInstructions: 'You are Stella, a supportive AI companion.'
+                }
+            };
+
+            showResult('addResult', 'Adding new provider...', 'info');
+            const result = await apiCall('/api/admin/ai-providers/add', 'POST', config);
+            
+            if (result.success) {
+                formatJsonResult('addResult', result.data, 'success');
+                document.getElementById('addProviderForm').style.display = 'none';
+                // Clear form
+                document.getElementById('providerId').value = '';
+                document.getElementById('apiKey').value = '';
+            } else {
+                formatJsonResult('addResult', result.data || result, 'error');
+            }
+        }
+
+        async function addSampleProviders() {
+            showResult('addResult', 'Adding sample providers...', 'info');
+            
+            const sampleProviders = [
+                {
+                    id: 'openai-gpt4',
+                    provider: 'openai',
+                    name: 'OpenAI GPT-4 Turbo',
+                    apiKey: 'sk-demo-key-openai'
+                },
+                {
+                    id: 'claude-sonnet',
+                    provider: 'anthropic',
+                    name: 'Anthropic Claude 3.5 Sonnet',
+                    apiKey: 'sk-demo-key-anthropic'
+                }
+            ];
+
+            let results = [];
+            for (const provider of sampleProviders) {
+                const config = {
+                    ...provider,
+                    endpoint: 'https://api.example.com',
+                    model: 'default',
+                    isActive: true,
+                    priority: 2,
+                    costPerToken: 0.003,
+                    rateLimit: { requestsPerMinute: 60, tokensPerMinute: 100000 },
+                    capabilities: {
+                        chat: true, contextCaching: false, functionCalling: true,
+                        imageAnalysis: true, voiceSynthesis: false, streamingResponse: true,
+                        batchProcessing: false
+                    },
+                    configuration: {
+                        temperature: 0.7, maxTokens: 2048,
+                        systemInstructions: 'You are Stella, a supportive AI companion.'
+                    }
+                };
+
+                const result = await apiCall('/api/admin/ai-providers/add', 'POST', config);
+                results.push(result);
+            }
+
+            formatJsonResult('addResult', results, 'success');
+            setTimeout(() => getProviderStatus(), 500);
+        }
+
+        // Demo functions
+        function demonstrateAdminFeatures() {
+            const mockDashboard = {
+                currentStatus: {
+                    activeProvider: 'gemini-default',
+                    totalRequests: 15420,
+                    avgResponseTime: '145ms',
+                    costToday: '$12.45'
+                },
+                providerMetrics: {
+                    'gemini-default': { requests: 12000, cost: '$10.20', uptime: '99.8%' },
+                    'openai-gpt4': { requests: 2000, cost: '$1.80', uptime: '99.5%' },
+                    'claude-sonnet': { requests: 1420, cost: '$0.45', uptime: '100%' }
+                },
+                routingRules: [
+                    { feature: 'avatar_analysis', provider: 'gemini-default', reason: 'Best image analysis' },
+                    { feature: 'complex_reasoning', provider: 'claude-sonnet', reason: 'Superior reasoning' },
+                    { feature: 'creative_writing', provider: 'openai-gpt4', reason: 'Most creative' }
+                ],
+                alerts: [
+                    { type: 'cost', message: 'Approaching daily budget limit' },
+                    { type: 'performance', message: 'OpenAI latency above threshold' }
+                ]
+            };
+
+            const resultDiv = document.getElementById('adminDemoResult');
+            resultDiv.innerHTML = `
+                <div class="admin-panel">
+                    <h3>🎛️ Admin Dashboard (Mock)</h3>
+                    <div class="costs-comparison">
+                        <h4>Real-time Metrics</h4>
+                        <div class="cost-row"><span>Active Provider</span><span>${mockDashboard.currentStatus.activeProvider}</span></div>
+                        <div class="cost-row"><span>Total Requests Today</span><span>${mockDashboard.currentStatus.totalRequests}</span></div>
+                        <div class="cost-row"><span>Avg Response Time</span><span>${mockDashboard.currentStatus.avgResponseTime}</span></div>
+                        <div class="cost-row"><span>Cost Today</span><span>${mockDashboard.currentStatus.costToday}</span></div>
+                    </div>
+                    
+                    <h4>🎯 Smart Routing Rules</h4>
+                    <ul>
+                        ${mockDashboard.routingRules.map(rule => 
+                            `<li><strong>${rule.feature}</strong> → ${rule.provider} (${rule.reason})</li>`
+                        ).join('')}
+                    </ul>
+                    
+                    <h4>⚠️ Active Alerts</h4>
+                    <ul>
+                        ${mockDashboard.alerts.map(alert => 
+                            `<li class="${alert.type}">${alert.message}</li>`
+                        ).join('')}
+                    </ul>
+                </div>
+            `;
+            resultDiv.style.display = 'block';
+        }
+
+        // Auto-load status on page load
+        window.addEventListener('load', () => {
+            getProviderStatus();
+        });
+    </script>
+</body>
+</html>
