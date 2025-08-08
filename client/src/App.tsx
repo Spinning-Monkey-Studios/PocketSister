@@ -18,6 +18,7 @@ import AvatarCreator from "./pages/avatar-creator";
 import NotFound from "./pages/not-found";
 import TestDashboard from "./pages/test-dashboard";
 import UpgradePage from "./pages/UpgradePage";
+import AdminDashboard from "./pages/AdminDashboard";
 
 function Router() {
   const { isAuthenticated, isLoading } = useAuth();
@@ -44,6 +45,7 @@ function Router() {
       <Route path="/test-parent-portal" component={ParentPortal} />
       <Route path="/admin-login" component={AdminLogin} />
       <Route path="/admin-portal" component={AdminPortal} />
+      <Route path="/admin-dashboard" component={AdminDashboard} />
       <Route component={NotFound} />
     </Switch>
   );

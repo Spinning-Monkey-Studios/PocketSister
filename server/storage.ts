@@ -17,6 +17,7 @@ import {
   savedConversations,
   conversationGroups,
   conversationMessages,
+  conversations,
   safetyAlerts,
   contentReviews,
   childPersonalities,
@@ -56,7 +57,7 @@ import {
   type InsertChildPersonality
 } from "@shared/schema";
 import { db } from "./db";
-import { eq, and, desc, gte } from "drizzle-orm";
+import { eq, and, desc, gte, lte } from "drizzle-orm";
 
 // Interface for storage operations
 export interface IStorage {
@@ -389,20 +390,21 @@ export class DatabaseStorage implements IStorage {
     const plans = [
       {
         id: 'basic',
-        name: 'Basic',
+        name: 'Pocket Sister Plus',
         description: 'Perfect for getting started',
-        price: '0.00',
+        price: '4.99',
         currency: 'USD',
         interval: 'month',
         tokenLimit: 50000,
         overageRate: '0.01',
         features: ['Basic AI Chat', 'Avatar Customization', 'Daily Affirmations'],
+        stripePriceId: 'prod_SmNx6Aj3maRO2j',
         dailyAffirmationsLimit: 1,
         isActive: true
       },
       {
         id: 'premium',
-        name: 'Premium',
+        name: 'Pocket Sister Premium',
         description: 'Enhanced features for deeper engagement',
         price: '9.99',
         currency: 'USD',
@@ -410,10 +412,31 @@ export class DatabaseStorage implements IStorage {
         tokenLimit: 200000,
         overageRate: '0.008',
         features: ['All Basic Features', 'Advanced Personality AI', 'Mood Tracking', 'Goal Setting'],
+        stripePriceId: 'prod_SoUyOrGeEMxOMt',
         dailyAffirmationsLimit: 3,
         advancedPersonalityAI: true,
         moodTrackingEnabled: true,
         goalTrackingEnabled: true,
+        isActive: true
+      },
+      {
+        id: 'family',
+        name: 'Pocket Sister Family',
+        description: 'Complete family solution with unlimited children',
+        price: '19.99',
+        currency: 'USD',
+        interval: 'month',
+        tokenLimit: 300000,
+        overageRate: '0.005',
+        features: ['All Premium Features', 'Unlimited Children', 'GPS Tracking', 'Parent-Child Messaging', 'Advanced Analytics'],
+        stripePriceId: 'prod_SoV01u3869uf9V',
+        dailyAffirmationsLimit: 5,
+        advancedPersonalityAI: true,
+        moodTrackingEnabled: true,
+        goalTrackingEnabled: true,
+        reminderSystemEnabled: true,
+        parentInsightsEnabled: true,
+        includesSafetyMonitoring: true,
         isActive: true
       }
     ];
@@ -506,7 +529,7 @@ export class DatabaseStorage implements IStorage {
       .orderBy(desc(aiLearningData.createdAt))
       .limit(10);
     
-    return results.map(r => r.personalityAdaptation);
+    return results.map((r: any) => r.personalityAdaptation);
   }
 
   async updatePersonalityAdaptations(childId: string, adaptations: any): Promise<void> {
@@ -818,6 +841,156 @@ export class DatabaseStorage implements IStorage {
     return await this.updateChildProfile(childId, { 
       personalityProfile: { status } 
     });
+  }
+
+  // Usage tracking methods for Stripe billing
+  async getMonthlyUsage(userId: string, month: number): Promise<{interactions: number, lastReset: Date}> {
+    // Get usage from current month for the user
+    const year = new Date().getFullYear();
+    const startOfMonth = new Date(year, month, 1);
+    const endOfMonth = new Date(year, month + 1, 0);
+    
+    try {
+      const messageCount = await db.select()
+        .from(conversationMessages)
+        .innerJoin(conversations, eq(conversationMessages.conversationId, conversations.id))
+        .innerJoin(childProfiles, eq(conversations.childId, childProfiles.id))
+        .where(and(
+          eq(childProfiles.userId, userId),
+          gte(conversationMessages.timestamp, startOfMonth),
+          lte(conversationMessages.timestamp, endOfMonth),
+          eq(conversationMessages.role, 'assistant') // Count AI responses only
+        ));
+      
+      return {
+        interactions: messageCount.length,
+        lastReset: startOfMonth
+      };
+    } catch (error) {
+      return { interactions: 0, lastReset: startOfMonth };
+    }
+  }
+
+  async incrementUsage(userId: string, childId: string, type: string): Promise<void> {
+    // This could store detailed usage logs if needed
+    // For now, we track via messages table which is sufficient
+    console.log(`Usage tracked: ${type} for user ${userId}, child ${childId}`);
+  }
+
+  async getChildProfileCount(userId: string): Promise<number> {
+    const profiles = await db.select()
+      .from(childProfiles)
+      .where(eq(childProfiles.userId, userId));
+    return profiles.length;
+  }
+
+  // Admin configuration methods
+  async setAdminEmail(adminEmail: string): Promise<void> {
+    // Store admin email in environment for this session
+    process.env.ADMIN_EMAIL = adminEmail;
+    
+    // Also update any admin user record in database
+    try {
+      await db.update(users)
+        .set({ adminEmail })
+        .where(eq(users.isAdmin, true));
+    } catch (error) {
+      console.log('No admin user in database to update, using environment variable only');
+    }
+  }
+
+  async getAdminEmail(): Promise<string | null> {
+    return process.env.ADMIN_EMAIL || null;
+  }
+
+  // Enhanced subscription methods
+  async updateUserStripeInfo(userId: string, stripeData: {customerId: string, subscriptionId: string}): Promise<User> {
+    const [user] = await db.update(users)
+      .set({
+        stripeCustomerId: stripeData.customerId,
+        stripeSubscriptionId: stripeData.subscriptionId,
+        subscriptionStatus: 'active',
+        updatedAt: new Date()
+      })
+      .where(eq(users.id, userId))
+      .returning();
+    return user;
+  }
+
+  async updateStripeCustomerId(userId: string, customerId: string): Promise<User> {
+    const [user] = await db.update(users)
+      .set({
+        stripeCustomerId: customerId,
+        updatedAt: new Date()
+      })
+      .where(eq(users.id, userId))
+      .returning();
+    return user;
+  }
+
+  // Free trial management
+  async checkAndUpgradeFreeUser(userId: string): Promise<{shouldUpgrade: boolean, reason: string}> {
+    const user = await this.getUserById(userId);
+    if (!user || user.subscriptionTier !== 'free') {
+      return { shouldUpgrade: false, reason: 'Not a free user' };
+    }
+
+    const now = new Date();
+    const trialStart = new Date(user.freeTrialStarted || now);
+    const daysSinceStart = Math.floor((now.getTime() - trialStart.getTime()) / (1000 * 60 * 60 * 24));
+    
+    // Check if 7 days passed OR 500 tokens used
+    if (daysSinceStart >= 7) {
+      return { shouldUpgrade: true, reason: '7-day trial expired' };
+    }
+    
+    if ((user.freeTrialTokensUsed || 0) >= 500) {
+      return { shouldUpgrade: true, reason: '500 token limit reached' };
+    }
+
+    return { shouldUpgrade: false, reason: `${daysSinceStart}/7 days, ${user.freeTrialTokensUsed || 0}/500 tokens used` };
+  }
+
+  async incrementFreeTrialUsage(userId: string, tokensUsed: number): Promise<User> {
+    const currentUser = await this.getUserById(userId);
+    if (!currentUser) throw new Error('User not found');
+    
+    const newTokensUsed = (currentUser.freeTrialTokensUsed || 0) + tokensUsed;
+    
+    const [user] = await db.update(users)
+      .set({
+        freeTrialTokensUsed: newTokensUsed,
+        updatedAt: new Date()
+      })
+      .where(eq(users.id, userId))
+      .returning();
+    return user;
+  }
+
+  async upgradeToPaidTier(userId: string, tier: 'basic' | 'premium' | 'family'): Promise<User> {
+    const [user] = await db.update(users)
+      .set({
+        subscriptionTier: tier,
+        subscriptionStatus: 'active',
+        freeTrialEnded: true,
+        updatedAt: new Date()
+      })
+      .where(eq(users.id, userId))
+      .returning();
+    return user;
+  }
+
+  async cancelUserSubscription(userId: string): Promise<User> {
+    const [user] = await db.update(users)
+      .set({
+        subscriptionStatus: 'cancelled',
+        subscriptionTier: 'free',
+        stripeSubscriptionId: null,
+        updatedAt: new Date()
+      })
+      .where(eq(users.id, userId))
+      .returning();
+    return user;
   }
 }
 

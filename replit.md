@@ -203,13 +203,38 @@ Preferred communication style: Simple, everyday language.
 
 ## Recent Updates & Context Limitations
 
-### Deployment Readiness (August 2025)
-- ✅ Resolved all TypeScript compilation errors
-- ✅ Implemented 50+ missing database methods
-- ✅ Fixed method signatures across all server components
-- ✅ Successfully building client and server without errors
-- ✅ Daily affirmations system operational
-- ✅ Ready for production deployment
+### Production Deployment Build System Fix (August 2025)
+- ✅ Fixed critical TypeScript build configuration issue preventing deployment success
+- ✅ Switched from TypeScript compilation (tsc) to esbuild bundling to create single dist/index.js file
+- ✅ Resolved "shared files outside rootDir configuration" error by bundling all dependencies
+- ✅ Updated package.json build:server script to use "node build-server.js" instead of tsc
+- ✅ Updated .replit deployment configuration to run "NODE_ENV=production node dist/index.js"
+- ✅ Build pipeline now creates proper structure: dist/public/ (client) + dist/index.js (bundled server)
+- ✅ Production deployment build system fully functional and ready for https://my-pocket-sister.replit.app
+
+### Admin Dashboard Implementation (August 2025)
+- ✅ Created comprehensive admin dashboard at /admin-dashboard with full testing suite
+- ✅ Implemented admin email configuration and test email functionality (basic, billing, safety alerts)
+- ✅ Updated Stripe product IDs: Plus (prod_SmNx6Aj3maRO2j), Premium (prod_SoUyOrGeEMxOMt), Family (prod_SoV01u3869uf9V)
+- ✅ Added feature testing tools for system validation and monitoring
+- ✅ Fixed production API routing issues to ensure admin endpoints work correctly when deployed
+- ✅ Added proper error handling and debugging for admin dashboard frontend
+- ✅ Comprehensive admin backend routes in /api/admin/testing/ for all testing functionality
+- ✅ Fixed critical production routing bug: markdown route pattern '*.md' was interfering with ALL API routes
+- ✅ Implemented deployment versioning system with automatic build number incrementing
+- ✅ Converted all dynamic imports to direct imports to fix production bundling issues
+
+### Comprehensive Subscription System (August 2025)
+- ✅ Complete free trial system: 500 tokens OR 7 days with full feature access
+- ✅ Tier-specific personality system with ghosted premium options
+- ✅ Usage-based billing with strict token limits and $0.01 overage charges
+- ✅ Advanced parent controls exclusive to Family tier
+- ✅ AI-accessible billing notifications and activity reports
+- ✅ Admin testing system for subscription flow without payment
+- ✅ Parent notification system for trial expiration and billing
+- ✅ Family usage reporting with detailed breakdowns per child
+- ✅ Advanced personality AI features for Premium/Family tiers
+- ✅ Testing capabilities with admin secret "admin123"
 
 ### Replit Agent Capabilities
 According to Replit documentation, agents don't have explicit context limitations for app size. The platform uses this `replit.md` file to understand project context and preferences. For complex applications like this one:

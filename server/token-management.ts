@@ -255,11 +255,11 @@ export class TokenManager {
       .groupBy(sql`DATE(${tokenUsage.createdAt})`, tokenUsage.usageType)
       .orderBy(sql`DATE(${tokenUsage.createdAt})`);
 
-    const totalUsage = usageData.reduce((sum, item) => sum + Number(item.tokens || 0), 0);
+    const totalUsage = usageData.reduce((sum: number, item: any) => sum + Number(item.tokens || 0), 0);
     const averageDaily = totalUsage / days;
 
     // Group by usage type for top types
-    const typeUsage = usageData.reduce((acc, item) => {
+    const typeUsage = usageData.reduce((acc: any, item: any) => {
       const type = item.type || 'unknown';
       acc[type] = (acc[type] || 0) + Number(item.tokens || 0);
       return acc;
@@ -269,19 +269,23 @@ export class TokenManager {
       .map(([type, tokens]) => ({
         type,
         tokens,
-        percentage: totalUsage > 0 ? (tokens / totalUsage) * 100 : 0
+        percentage: totalUsage > 0 ? (Number(tokens) / totalUsage) * 100 : 0
       }))
-      .sort((a, b) => b.tokens - a.tokens);
+      .sort((a, b) => Number(b.tokens) - Number(a.tokens));
 
     return {
-      dailyUsage: usageData.map(item => ({
+      dailyUsage: usageData.map((item: any) => ({
         date: item.date,
         tokens: Number(item.tokens || 0),
         type: item.type || 'unknown'
       })),
       totalUsage,
       averageDaily,
-      topUsageTypes
+      topUsageTypes: topUsageTypes.map(item => ({
+        type: item.type,
+        tokens: Number(item.tokens),
+        percentage: item.percentage
+      }))
     };
   }
 }

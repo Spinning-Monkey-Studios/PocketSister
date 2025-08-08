@@ -1,0 +1,6 @@
+{
+  "version": "1.0.0",
+  "build": 35,
+  "timestamp": "2025-08-06T05:30:54.925Z",
+  "description": "Fixed serveStatic function signature and production environment detection"
+}

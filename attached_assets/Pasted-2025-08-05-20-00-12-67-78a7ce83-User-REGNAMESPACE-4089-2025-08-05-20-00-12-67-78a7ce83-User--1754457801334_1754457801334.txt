@@ -1,0 +1,136 @@
+2025-08-05 20:00:12.67
+78a7ce83
+User
+REGNAMESPACE: 4089,
+2025-08-05 20:00:12.67
+78a7ce83
+User
+REGROLE: 4096
+2025-08-05 20:00:12.67
+78a7ce83
+User
+}
+2025-08-05 20:00:12.67
+78a7ce83
+User
+},
+2025-08-05 20:00:12.67
+78a7ce83
+User
+text: {},
+2025-08-05 20:00:12.67
+78a7ce83
+User
+binary: {}
+2025-08-05 20:00:12.67
+78a7ce83
+User
+},
+2025-08-05 20:00:12.67
+78a7ce83
+User
+_ending: true,
+2025-08-05 20:00:12.67
+78a7ce83
+User
+_connecting: false,
+2025-08-05 20:00:12.67
+78a7ce83
+User
+_connected: true,
+2025-08-05 20:00:12.67
+78a7ce83
+User
+_connectionError: false,
+2025-08-05 20:00:12.67
+78a7ce83
+User
+_queryable: false,
+2025-08-05 20:00:12.67
+78a7ce83
+User
+connection: Connection {
+2025-08-05 20:00:12.67
+78a7ce83
+User
+_events: [Object: null prototype] {
+2025-08-05 20:00:12.67
+78a7ce83
+User
+newListener: [Function (anonymous)],
+2025-08-05 20:00:12.67
+78a7ce83
+User
+connect: [ [Function (anonymous)], [Function (anonymous)] ],
+2025-08-05 20:00:12.67
+78a7ce83
+User
+sslconnect: [Function (anonymous)],
+2025-08-05 20:00:12.67
+78a7ce83
+User
+authenticationMD5Password: [Function: bound _handleAuthMD5Password],
+2025-08-05 20:00:12.67
+78a7ce83
+User
+authenticationSASL: [Function: bound _handleAuthSASL],
+2025-08-05 20:00:12.67
+78a7ce83
+User
+authenticationSASLContinue: [Function: bound _handleAuthSASLContinue] AsyncFunction,
+2025-08-05 20:00:12.67
+78a7ce83
+User
+authenticationSASLFinal: [Function: bound _handleAuthSASLFinal],
+2025-08-05 20:00:12.67
+78a7ce83
+User
+backendKeyData: [Function: bound _handleBackendKeyData],
+2025-08-05 20:00:12.67
+78a7ce83
+User
+error: [Function: bound _handleErrorEvent],
+2025-08-05 20:00:12.67
+78a7ce83
+User
+errorMessage: [Function: bound _handleErrorMessage],
+2025-08-05 20:00:12.67
+78a7ce83
+User
+notice: [Function: bound _handleNotice],
+2025-08-05 20:00:12.67
+78a7ce83
+User
+rowDescription: [Function: bound _handleRowDescription],
+2025-08-05 20:00:12.67
+78a7ce83
+User
+dataRow: [Function: bound _handleDataRow],
+2025-08-05 20:00:12.67
+78a7ce83
+User
+portalSuspended: [Function: bound _handlePortalSuspended],
+2025-08-05 20:00:12.67
+78a7ce83
+User
+copyData: [Function: bound _handleCopyData],
+2025-08-05 20:00:12.67
+78a7ce83
+User
+listener: [Function (anonymous)]
+2025-08-05 20:00:12.67
+78a7ce83
+User
+[Function: bound onceWrapper] {
+2025-08-05 20:00:12.67
+78a7ce83
+User
+listener: [Function (anonymous)]
+2025-08-05 20:00:12.67
+78a7ce83
+User
+},
+2025-08-05 20:00:12.67
+78a7ce83
+User
+},

@@ -27,7 +27,7 @@ export const adminLogin: RequestHandler = async (req, res) => {
     return res.status(400).json({ message: 'Admin secret required' });
   }
   
-  const expectedSecret = process.env.ADMIN_SECRET || 'default-admin-secret-change-me';
+  const expectedSecret = process.env.ADMIN_SECRET || 'admin123';
   
   if (secret === expectedSecret) {
     // Generate a simple session token (in production, use JWT or proper session management)

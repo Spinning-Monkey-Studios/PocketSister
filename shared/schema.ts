@@ -62,9 +62,16 @@ export const users = pgTable("users", {
   lastName: varchar("last_name"),
   profileImageUrl: varchar("profile_image_url"),
   isAdmin: boolean("is_admin").default(false),
-  subscriptionStatus: varchar("subscription_status", { length: 20 }).default("free"), // free, pro, premium
-  subscriptionId: varchar("subscription_id"),
-  customerId: varchar("customer_id"),
+  adminEmail: varchar("admin_email"), // Admin email for notifications and testing
+  subscriptionStatus: varchar("subscription_status", { length: 20 }).default("free"), // free, basic, premium, family
+  subscriptionTier: varchar("subscription_tier", { length: 20 }).default("free"), // free, basic, premium, family
+  stripeCustomerId: varchar("stripe_customer_id"),
+  stripeSubscriptionId: varchar("stripe_subscription_id"),
+  freeTrialStarted: timestamp("free_trial_started").defaultNow(),
+  freeTrialTokensUsed: integer("free_trial_tokens_used").default(0),
+  freeTrialEnded: boolean("free_trial_ended").default(false),
+  tokenUsageThisMonth: integer("token_usage_this_month").default(0),
+  lastTokenReset: timestamp("last_token_reset").defaultNow(),
   createdAt: timestamp("created_at").defaultNow(),
   updatedAt: timestamp("updated_at").defaultNow(),
 });

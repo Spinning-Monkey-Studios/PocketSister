@@ -1,0 +1,463 @@
+import express, { type Request, Response, NextFunction } from "express";
+import { registerRoutes } from "./routes";
+import { scheduleDailyAffirmations } from "./affirmations";
+import { setupVite, serveStatic, log } from "./vite";
+import path from 'path';
+import fs from 'fs';
+import { fileURLToPath } from 'url';
+
+// Get __dirname equivalent for ES modules
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+
+const app = express();
+
+// PRODUCTION CRASH PROTECTION - Add global error handlers
+process.on('uncaughtException', (error) => {
+  console.error('💥 UNCAUGHT EXCEPTION IN PRODUCTION:', error.message);
+  console.error('💥 Stack:', error.stack);
+  
+  // Don't exit in production, just log and continue
+  if (process.env.NODE_ENV !== 'production' && process.env.REPLIT_DEPLOYMENT !== '1') {
+    process.exit(1);
+  }
+});
+
+process.on('unhandledRejection', (reason, promise) => {
+  console.error('💥 UNHANDLED REJECTION IN PRODUCTION:', reason);
+  console.error('💥 At promise:', promise);
+  
+  // For database connection errors, don't crash the entire server
+  if (reason && typeof reason === 'object' && 'code' in reason) {
+    console.error('💥 Error code:', (reason as any).code);
+    if (['ECONNREFUSED', 'ENOTFOUND', 'ETIMEDOUT'].includes((reason as any).code)) {
+      console.error('💥 Database connection error detected - server will continue running');
+      return;
+    }
+  }
+});
+
+// CRITICAL API PROTECTION: Prevent wildcard route in vite.ts from intercepting API calls
+// This MUST be the first middleware to work
+app.use((req, res, next) => {
+  console.log(`🔍 Request interceptor: ${req.method} ${req.originalUrl}`);
+  
+  // ENHANCED: Block HTML responses to ANY API route at the Express level
+  if (req.originalUrl.startsWith('/api/')) {
+    const originalSend = res.send.bind(res);
+    const originalEnd = res.end.bind(res);
+    
+    // Override send method
+    res.send = function(data: any) {
+      if (typeof data === 'string' && data.includes('<!DOCTYPE html>')) {
+        console.error(`🚨 BLOCKED HTML via send() to API route: ${req.originalUrl}`);
+        return res.status(500).json({
+          error: 'API route incorrectly serving HTML via send()',
+          route: req.originalUrl,
+          timestamp: new Date().toISOString(),
+          solution: 'Check vite.ts wildcard route and environment detection'
+        });
+      }
+      return originalSend(data);
+    };
+    
+    // Override end method
+    res.end = function(...args: any[]) {
+      const [chunk] = args;
+      if (typeof chunk === 'string' && chunk.includes('<!DOCTYPE html>')) {
+        console.error(`🚨 BLOCKED HTML via end() to API route: ${req.originalUrl}`);
+        res.status(500).json({
+          error: 'API route incorrectly serving HTML via end()',
+          route: req.originalUrl,
+          timestamp: new Date().toISOString(),
+          solution: 'Check vite.ts wildcard route and environment detection'
+        });
+        return res;
+      }
+      return originalEnd(...args);
+    };
+  }
+  
+  next();
+});
+
+// EMERGENCY DIAGNOSTIC - Catch any errors before they crash the route
+app.use('/api/*', (req, res, next) => {
+  console.log(`🚨 EMERGENCY: API route intercepted: ${req.method} ${req.originalUrl}`);
+  console.log(`🚨 Headers:`, req.headers);
+  
+  try {
+    next();
+  } catch (error) {
+    console.error(`🚨 MIDDLEWARE ERROR for ${req.originalUrl}:`, error);
+    res.status(500).json({
+      error: 'Middleware crash',
+      route: req.originalUrl,
+      message: error instanceof Error ? error.message : String(error),
+      stack: error instanceof Error ? error.stack : undefined
+    });
+  }
+});
+
+// ABSOLUTE MINIMAL TEST - completely bypass all other setup
+app.get('/api/minimal-test', (req, res) => {
+  try {
+    console.log('🚨 CRITICAL: /api/minimal-test was reached by Express server!');
+    console.log('🚨 Environment:', process.env.NODE_ENV);
+    console.log('🚨 Server process running correctly');
+    
+    res.status(200).json({ 
+      status: 'EXPRESS_SERVER_WORKING',
+      timestamp: Date.now(),
+      nodeEnv: process.env.NODE_ENV || 'undefined',
+      replitDeployment: process.env.REPLIT_DEPLOYMENT,
+      replitDevDomain: process.env.REPLIT_DEV_DOMAIN,
+      replSlug: process.env.REPL_SLUG,
+      processArgs: process.argv,
+      currentWorkingDir: process.cwd(),
+      filename: __filename,
+      isCompiledVersion: __filename.includes('dist'),
+      message: 'This proves Express server is running correctly'
+    });
+  } catch (error) {
+    console.error('🚨 Express minimal test failed:', error);
+    res.status(500).json({
+      error: 'Minimal test failed',
+      message: error instanceof Error ? error.message : String(error),
+      stack: error instanceof Error ? error.stack : undefined
+    });
+  }
+});
+
+// EMERGENCY PRODUCTION STATUS CHECK
+app.get('/api/production-check', (req, res) => {
+  res.json({
+    nodeEnv: process.env.NODE_ENV,
+    processTitle: process.title,
+    processArgs: process.argv,
+    isCompiledFile: __filename.includes('dist'),
+    filename: __filename,
+    cwd: process.cwd(),
+    viteScriptsDetected: false, // This endpoint should never return HTML
+    timestamp: new Date().toISOString()
+  });
+});
+
+// ABSOLUTE EMERGENCY ROUTE - before ANY middleware
+app.get('/api/absolute-emergency', (req, res) => {
+  res.status(200).json({ 
+    status: 'MINIMAL_SERVER_ALIVE',
+    timestamp: new Date().toISOString(),
+    message: 'This route bypasses ALL middleware'
+  });
+});
+
+app.use(express.json());
+app.use(express.urlencoded({ extended: false }));
+
+// Simplified request logging that doesn't interfere with other middleware
+app.use((req, res, next) => {
+  try {
+    if (req.path.startsWith("/api")) {
+      console.log(`📝 ${req.method} ${req.path} - ${new Date().toISOString()}`);
+    }
+    next();
+  } catch (error) {
+    console.error('Request logging middleware error:', error);
+    next(); // Continue even if logging fails
+  }
+});
+
+(async () => {
+  // Emergency routes - MUST be registered before ANY other middleware
+  app.get('/api/emergency-health', (req, res) => {
+    console.log('🚨 Emergency health endpoint hit!');
+    res.status(200).json({ 
+      status: 'server-alive',
+      timestamp: new Date().toISOString(),
+      message: 'Server started successfully - minimal test',
+      environment: process.env.NODE_ENV || 'unknown'
+    });
+  });
+
+  app.get('/api/startup-test', (req, res) => {
+    console.log('🚨 Startup test endpoint hit!');
+    res.status(200).json({
+      status: 'server-started',
+      timestamp: new Date().toISOString(),
+      environment: process.env.NODE_ENV || 'unknown',
+      hasDatabase: !!process.env.DATABASE_URL
+    });
+  });
+
+  // Super simple ping endpoint
+  app.get('/api/ping', (req, res) => {
+    console.log('🏓 Ping endpoint hit!');
+    res.status(200).json({ 
+      message: 'pong', 
+      timestamp: new Date().toISOString() 
+    });
+  });
+
+  console.log('🚀 Basic server setup complete, attempting to register routes...');
+
+  let server;
+  try {
+    server = await registerRoutes(app);
+    console.log('✅ Routes registered successfully');
+  } catch (error) {
+    console.error('❌ Route registration failed:', error);
+    // Add a fallback route to show the error
+    app.get('/api/route-error', (req, res) => {
+      res.status(500).json({
+        error: 'Route registration failed',
+        message: error instanceof Error ? error.message : String(error),
+        timestamp: new Date().toISOString()
+      });
+    });
+    throw error;
+  }
+  
+  // Log registered routes for debugging
+  console.log('🚀 Routes registered. Testing basic endpoints...');
+  console.log('🚀 Environment:', process.env.NODE_ENV);
+  console.log('🚀 Version endpoint should be available at /api/version');
+  
+  // Add a simple test endpoint after registerRoutes but before static serving
+  app.get('/api/health-check', (req, res) => {
+    try {
+      console.log('Health check endpoint hit!');
+      res.status(200).json({ 
+        status: 'healthy', 
+        timestamp: new Date().toISOString(),
+        environment: process.env.NODE_ENV || 'unknown',
+        hasDatabase: !!process.env.DATABASE_URL,
+        nodeVersion: process.version
+      });
+    } catch (error) {
+      console.error('Health check error:', error);
+      res.status(500).json({
+        error: 'Health check failed',
+        message: error instanceof Error ? error.message : String(error)
+      });
+    }
+  });
+
+  // Debug: Add middleware to log all API requests that weren't handled by basic routes
+  app.use('/api/*', (req, res, next) => {
+    console.log(`🔍 API Request reached middleware: ${req.method} ${req.originalUrl}`);
+    next();
+  });
+
+  // Serve markdown files from root directory (after API routes to prevent conflicts)
+  app.get('/:filename.md', (req, res) => {
+    const fileName = req.params.filename + '.md';
+    const filePath = path.join(__dirname, '..', fileName);
+    
+    if (fs.existsSync(filePath)) {
+      res.setHeader('Content-Type', 'text/plain; charset=utf-8');
+      res.sendFile(path.resolve(filePath));
+    } else {
+      res.status(404).send('Markdown file not found');
+    }
+  });
+
+  // Start the daily affirmations scheduling system
+  scheduleDailyAffirmations();
+
+  app.use((err: any, _req: Request, res: Response, _next: NextFunction) => {
+    const status = err.status || err.statusCode || 500;
+    const message = err.message || "Internal Server Error";
+
+    res.status(status).json({ message });
+    throw err;
+  });
+
+  // importantly only setup vite in development and after
+  // setting up all the other routes so the catch-all route
+  // doesn't interfere with the other routes
+  const nodeEnv = process.env.NODE_ENV || 'development';
+  const expressEnv = app.get("env");
+  const isCompiledServer = __filename.includes('dist');
+  
+  console.log('🔥 DEPLOYMENT DEBUG START 🔥');
+  console.log('🌍 NODE_ENV:', process.env.NODE_ENV);
+  console.log('🌍 REPLIT_DEPLOYMENT:', process.env.REPLIT_DEPLOYMENT);
+  console.log('🌍 REPLIT_DEV_DOMAIN:', process.env.REPLIT_DEV_DOMAIN);
+  console.log('🌍 REPL_SLUG:', process.env.REPL_SLUG);
+  console.log('🌍 Environment check:', { nodeEnv, expressEnv, isCompiledServer });
+  console.log('🌍 __filename:', __filename);
+  console.log('🌍 process.argv:', process.argv);
+  console.log('🔥 DEPLOYMENT DEBUG END 🔥');
+  
+  // CRITICAL FIX: Force production mode for ALL deployment scenarios
+  const isReplitDeployment = process.env.REPLIT_DEPLOYMENT === '1';
+  const isPreviewWindow = process.env.REPLIT_DEV_DOMAIN && !isReplitDeployment;
+  
+  // Force production in these cases:
+  // 1. Running from compiled dist folder
+  // 2. Process args contain 'dist/index.js'  
+  // 3. REPLIT_DEPLOYMENT environment variable is set
+  // 4. NODE_ENV is explicitly set to production
+  // 5. Production URL pattern (.replit.app domain)
+  // 6. No dev domain (likely deployment context)
+  const isProductionURL = process.env.REPLIT_DEV_DOMAIN && 
+                         process.env.REPLIT_DEV_DOMAIN.includes('.replit.app');
+  const isDeploymentContext = !process.env.REPLIT_DEV_DOMAIN || isProductionURL;
+  const hasProductionIndicators = process.env.PORT && !process.env.REPLIT_DEV_DOMAIN;
+  
+  const forceProduction = isCompiledServer || 
+                          process.argv.some(arg => arg.includes('dist/index.js')) ||
+                          isReplitDeployment ||
+                          process.env.NODE_ENV === 'production' ||
+                          isProductionURL ||
+                          hasProductionIndicators;
+  const actualMode = forceProduction ? 'production' : nodeEnv;
+  
+  // CRITICAL: Set NODE_ENV to production if we're forcing production mode
+  if (forceProduction && process.env.NODE_ENV !== 'production') {
+    console.log('🚀 SETTING NODE_ENV=production for deployment');
+    process.env.NODE_ENV = 'production';
+  }
+  
+  console.log('🌍 Actual mode determined:', actualMode);
+  console.log('🌍 Environment detection:', { 
+    isCompiledServer, 
+    isReplitDeployment: process.env.REPLIT_DEPLOYMENT, 
+    isPreviewWindow: process.env.REPLIT_DEV_DOMAIN,
+    replSlug: process.env.REPL_SLUG,
+    isProductionURL,
+    isDeploymentContext,
+    hasProductionIndicators,
+    forceProduction
+  });
+  console.log('🌍 Will use:', actualMode === 'development' ? 'Vite dev server' : 'Static serving');
+  
+  if (forceProduction) {
+    console.log('🚀 OVERRIDING ENVIRONMENT - Forcing production mode for deployment');
+    console.log('🚀 This prevents Vite development scripts from being served');
+  }
+  
+  if (actualMode === "development" && !forceProduction) {
+    console.log('🔧 Setting up Vite development server...');
+    await setupVite(app, server);
+  } else {
+    console.log('🚀 PRODUCTION MODE DETECTED');
+    console.log(`🚀 NODE_ENV: ${process.env.NODE_ENV}`);
+    console.log(`🚀 Current working directory: ${process.cwd()}`);
+    console.log(`🚀 __dirname: ${__dirname}`);
+    
+    // Check if dist folder exists
+    const distPath = path.resolve(__dirname, "public");
+    console.log(`🚀 Looking for static files at: ${distPath}`);
+    console.log(`🚀 Dist folder exists: ${fs.existsSync(distPath)}`);
+    
+    // List contents of directory for debugging
+    if (fs.existsSync(distPath)) {
+      const files = fs.readdirSync(distPath);
+      console.log(`🚀 Files in dist directory:`, files);
+    }
+    
+    // CRITICAL FIX: Ensure we serve the compiled static files, not development files
+    if (fs.existsSync(distPath)) {
+      console.log('🚀 Static files served from:', distPath);
+    } else {
+      console.error('💥 CRITICAL: Static files directory not found!');
+      console.error('💥 Current directory:', process.cwd());
+      console.error('💥 __dirname:', __dirname);
+      
+      // Try alternative paths
+      const altPath1 = path.resolve(process.cwd(), "dist", "public");
+      const altPath2 = path.resolve(process.cwd(), "public");
+      console.error('💥 Trying alternative path 1:', altPath1, 'exists:', fs.existsSync(altPath1));
+      console.error('💥 Trying alternative path 2:', altPath2, 'exists:', fs.existsSync(altPath2));
+    }
+    
+    // Use the serveStatic function correctly (it handles path internally)
+    serveStatic(app);
+    console.log('✅ Production static serving configured');
+    
+    // Add the deployment status HTML file to static serving
+    app.get('/deployment-status.html', (req, res) => {
+      const statusPath = path.resolve(__dirname, '..', 'deployment-status.html');
+      console.log(`📄 Serving deployment status from: ${statusPath}`);
+      console.log(`📄 File exists: ${fs.existsSync(statusPath)}`);
+      if (fs.existsSync(statusPath)) {
+        res.sendFile(statusPath);
+      } else {
+        res.status(404).send('Deployment status file not found');
+      }
+    });
+    
+
+  }
+
+  // Add explicit API route check as last resort
+  app.use('/api/*', (req, res, next) => {
+    // If we reach here, the API route wasn't handled by registerRoutes
+    console.error(`❌ Unhandled API route: ${req.method} ${req.originalUrl}`);
+    console.error('❌ Available routes should have been registered by registerRoutes()');
+    console.error('❌ Environment:', process.env.NODE_ENV);
+    res.status(404).json({ 
+      success: false, 
+      error: 'API endpoint not found - route not registered',
+      method: req.method,
+      path: req.originalUrl,
+      environment: process.env.NODE_ENV,
+      hint: 'Check server logs for route registration issues'
+    });
+  });
+
+  // CRITICAL: In production, fix the problematic "*" fallback route from serveStatic
+  if (nodeEnv === "production") {
+    console.log('🔧 Fixing problematic "*" fallback route from serveStatic...');
+    
+    // Find and remove the "*" route that intercepts API calls
+    const routes = app._router?.stack || [];
+    for (let i = routes.length - 1; i >= 0; i--) {
+      const layer = routes[i];
+      if (layer.route && layer.route.path === '*') {
+        console.log('🗑️  Removed problematic "*" fallback route that was intercepting API calls');
+        routes.splice(i, 1);
+        break;
+      }
+      // Also check for general middleware with "*" pattern
+      if (layer.regexp && layer.regexp.source.includes('.*')) {
+        console.log('🗑️  Found potential wildcard middleware:', layer.regexp.source);
+        // Only remove if it's specifically the static fallback
+        if (layer.handle && layer.handle.toString().includes('index.html')) {
+          console.log('🗑️  Removed static fallback middleware');
+          routes.splice(i, 1);
+          break;
+        }
+      }
+    }
+    
+    // Add our corrected fallback that properly handles API routes
+    app.get('*', (req, res, next) => {
+      if (req.originalUrl.startsWith('/api/')) {
+        console.log(`🚫 API route ${req.originalUrl} - passing to Express handlers`);
+        return next(); // Let Express API handlers deal with this
+      }
+      
+      console.log(`📄 Serving index.html for frontend route: ${req.originalUrl}`);
+      const distPath = path.resolve(__dirname, "public");
+      res.sendFile(path.resolve(distPath, "index.html"));
+    });
+    
+    console.log('✅ Applied corrected static file serving that excludes API routes');
+  }
+
+  // ALWAYS serve the app on the port specified in the environment variable PORT
+  // Other ports are firewalled. Default to 5000 if not specified.
+  // this serves both the API and the client.
+  // It is the only port that is not firewalled.
+  const port = parseInt(process.env.PORT || '5000', 10);
+  server.listen({
+    port,
+    host: "0.0.0.0",
+    reusePort: true,
+  }, () => {
+    log(`serving on port ${port}`);
+  });
+})();
