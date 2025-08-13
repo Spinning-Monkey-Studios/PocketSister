@@ -29,16 +29,17 @@ const isProd =
 (async () => {
   const server = app as any; // if you’re attaching Vite middlewares, this is fine
 
+  // Register API routes FIRST - this is critical for production
+  await registerRoutes(app);
+
   if (isProd) {
     // ✅ Production: serve built static files from dist/public + SPA fallback
+    // IMPORTANT: Static files are served AFTER API routes to prevent conflicts
     serveStatic(app);
   } else {
     // 🛠 Development: Vite dev middleware (hot reload, @react-refresh, etc.)
     await setupVite(app, server);
   }
-
-  // Register API routes AFTER static/dev middleware hooks
-  registerRoutes(app);
 
   // Listen on Replit’s provided port
   const port = parseInt(process.env.PORT || "5000", 10);

@@ -298,60 +298,67 @@ export default function AdminPortal() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-gray-50 overflow-y-auto">
       <header className="bg-white shadow-sm border-b">
-        <div className="container mx-auto px-4 py-4 flex justify-between items-center">
-          <div className="flex items-center space-x-4">
-            <Settings className="h-8 w-8 text-primary" />
+        <div className="container mx-auto px-4 py-4 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+          <div className="flex items-center space-x-3 sm:space-x-4">
+            <Settings className="h-6 w-6 sm:h-8 sm:w-8 text-primary" />
             <div>
-              <h1 className="text-2xl font-bold text-gray-900">Admin Portal</h1>
-              <p className="text-sm text-gray-600">My Pocket Sister Management</p>
+              <h1 className="text-xl sm:text-2xl font-bold text-gray-900">Admin Portal</h1>
+              <p className="text-xs sm:text-sm text-gray-600">My Pocket Sister Management</p>
             </div>
           </div>
-          <div className="flex items-center space-x-4">
+          <div className="flex items-center space-x-2 sm:space-x-4 w-full sm:w-auto">
             <Button 
               variant="outline" 
               size="sm"
               onClick={() => window.open('/documentation.html', '_blank')}
+              className="flex-1 sm:flex-none"
             >
-              <BookOpen className="h-4 w-4 mr-2" />
-              Documentation
+              <BookOpen className="h-3 w-3 sm:h-4 sm:w-4 mr-1 sm:mr-2" />
+              <span className="text-xs sm:text-sm">Docs</span>
             </Button>
-            <span className="text-sm text-gray-600">Welcome, {(user as any)?.firstName || 'Admin'}</span>
+            <span className="text-xs sm:text-sm text-gray-600 hidden md:inline">Welcome, {(user as any)?.firstName || 'Admin'}</span>
             <Button 
               variant="outline" 
               size="sm"
               onClick={() => window.location.href = "/api/logout"}
+              className="flex-1 sm:flex-none"
             >
-              <LogOut className="h-4 w-4 mr-2" />
-              Logout
+              <LogOut className="h-3 w-3 sm:h-4 sm:w-4 mr-1 sm:mr-2" />
+              <span className="text-xs sm:text-sm">Logout</span>
             </Button>
           </div>
         </div>
       </header>
 
-      <div className="container mx-auto px-4 py-8">
-        <Tabs defaultValue="users" className="space-y-6">
-          <TabsList className="grid w-full grid-cols-5">
-            <TabsTrigger value="users">
-              <Users className="h-4 w-4 mr-2" />
-              User Management
+      <main className="container mx-auto px-4 py-4 sm:py-6 lg:py-8">
+        <Tabs defaultValue="users" className="space-y-4 sm:space-y-6">
+          <TabsList className="grid w-full grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 h-auto">
+            <TabsTrigger value="users" className="flex items-center gap-1 sm:gap-2 px-2 sm:px-3 py-2 text-xs sm:text-sm">
+              <Users className="h-3 w-3 sm:h-4 sm:w-4" />
+              <span className="hidden sm:inline">User Management</span>
+              <span className="sm:hidden">Users</span>
             </TabsTrigger>
-            <TabsTrigger value="announcements">
-              <MessageSquare className="h-4 w-4 mr-2" />
-              Announcements
+            <TabsTrigger value="announcements" className="flex items-center gap-1 sm:gap-2 px-2 sm:px-3 py-2 text-xs sm:text-sm">
+              <MessageSquare className="h-3 w-3 sm:h-4 sm:w-4" />
+              <span className="hidden sm:inline">Announcements</span>
+              <span className="sm:hidden">News</span>
             </TabsTrigger>
-            <TabsTrigger value="notifications">
-              <Bell className="h-4 w-4 mr-2" />
-              Push Notifications
+            <TabsTrigger value="notifications" className="flex items-center gap-1 sm:gap-2 px-2 sm:px-3 py-2 text-xs sm:text-sm">
+              <Bell className="h-3 w-3 sm:h-4 sm:w-4" />
+              <span className="hidden sm:inline">Push Notifications</span>
+              <span className="sm:hidden">Push</span>
             </TabsTrigger>
-            <TabsTrigger value="usage">
-              <BarChart3 className="h-4 w-4 mr-2" />
-              Message Usage
+            <TabsTrigger value="usage" className="flex items-center gap-1 sm:gap-2 px-2 sm:px-3 py-2 text-xs sm:text-sm">
+              <BarChart3 className="h-3 w-3 sm:h-4 sm:w-4" />
+              <span className="hidden sm:inline">Message Usage</span>
+              <span className="sm:hidden">Usage</span>
             </TabsTrigger>
-            <TabsTrigger value="config">
-              <Settings className="h-4 w-4 mr-2" />
-              API Config
+            <TabsTrigger value="config" className="flex items-center gap-1 sm:gap-2 px-2 sm:px-3 py-2 text-xs sm:text-sm">
+              <Settings className="h-3 w-3 sm:h-4 sm:w-4" />
+              <span className="hidden sm:inline">API Config</span>
+              <span className="sm:hidden">Config</span>
             </TabsTrigger>
           </TabsList>
 
@@ -368,22 +375,24 @@ export default function AdminPortal() {
                     <div className="animate-spin w-6 h-6 border-4 border-primary border-t-transparent rounded-full" />
                   </div>
                 ) : (
-                  <div className="space-y-4">
+                  <div className="space-y-4 max-h-96 overflow-y-auto">
                     {users.map((user: User) => (
-                      <div key={user.id} className="flex items-center justify-between p-4 border rounded-lg">
-                        <div className="flex-1">
-                          <div className="flex items-center space-x-4">
-                            <div>
-                              <p className="font-medium">{user.firstName} {user.lastName}</p>
-                              <p className="text-sm text-gray-600">{user.email}</p>
+                      <div key={user.id} className="flex flex-col sm:flex-row sm:items-center justify-between p-3 sm:p-4 border rounded-lg gap-3 sm:gap-4">
+                        <div className="flex-1 min-w-0">
+                          <div className="flex flex-col sm:flex-row sm:items-center space-y-2 sm:space-y-0 sm:space-x-4">
+                            <div className="min-w-0 flex-1">
+                              <p className="font-medium text-sm sm:text-base truncate">{user.firstName} {user.lastName}</p>
+                              <p className="text-xs sm:text-sm text-gray-600 truncate">{user.email}</p>
                               <p className="text-xs text-gray-500">Joined: {new Date(user.createdAt).toLocaleDateString()}</p>
                             </div>
-                            <Badge className={getSubscriptionBadgeColor(user.subscriptionStatus)}>
-                              {user.subscriptionStatus}
-                            </Badge>
-                            {user.isAdmin && (
-                              <Badge variant="secondary">Admin</Badge>
-                            )}
+                            <div className="flex flex-wrap gap-2 sm:gap-3">
+                              <Badge className={getSubscriptionBadgeColor(user.subscriptionStatus)}>
+                                {user.subscriptionStatus}
+                              </Badge>
+                              {user.isAdmin && (
+                                <Badge variant="secondary">Admin</Badge>
+                              )}
+                            </div>
                           </div>
                         </div>
                         <div className="flex items-center space-x-2">
@@ -393,7 +402,7 @@ export default function AdminPortal() {
                               updateSubscriptionMutation.mutate({ userId: user.id, status })
                             }
                           >
-                            <SelectTrigger className="w-32">
+                            <SelectTrigger className="w-full sm:w-32">
                               <SelectValue />
                             </SelectTrigger>
                             <SelectContent>
@@ -414,7 +423,7 @@ export default function AdminPortal() {
 
           {/* Announcements Tab */}
           <TabsContent value="announcements">
-            <div className="grid gap-6 md:grid-cols-2">
+            <div className="grid gap-4 sm:gap-6 lg:grid-cols-2">
               <Card>
                 <CardHeader>
                   <CardTitle>Create Announcement</CardTitle>
@@ -443,7 +452,7 @@ export default function AdminPortal() {
                         required
                       />
                     </div>
-                    <div className="grid grid-cols-2 gap-4">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                       <div>
                         <Label htmlFor="type">Type</Label>
                         <Select
@@ -788,7 +797,7 @@ export default function AdminPortal() {
             </div>
           </TabsContent>
         </Tabs>
-      </div>
+      </main>
     </div>
   );
 }

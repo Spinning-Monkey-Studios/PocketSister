@@ -48,7 +48,7 @@ export default function AdminDashboard() {
   const [message, setMessage] = useState('');
   const [version, setVersion] = useState<any>(null);
 
-  const adminSecret = 'admin123'; // In production, this would be from environment
+  const adminSecret = import.meta.env.VITE_ADMIN_SECRET || 'admin123'; // Environment-based admin secret
 
   useEffect(() => {
     fetchConfig();
@@ -216,59 +216,63 @@ export default function AdminDashboard() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 p-8">
-      <div className="max-w-6xl mx-auto">
-        <div className="mb-8">
-          <h1 className="text-3xl font-bold text-gray-900 mb-2">
+    <div className="min-h-screen bg-gray-50 p-4 sm:p-6 lg:p-8 overflow-y-auto">
+      <div className="max-w-7xl mx-auto">
+        <div className="mb-6 sm:mb-8">
+          <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 mb-2">
             My Pocket Sister - Admin Dashboard
           </h1>
-          <p className="text-gray-600">
+          <p className="text-gray-600 text-sm sm:text-base">
             System administration and testing tools
           </p>
         </div>
 
         {message && (
-          <Alert className="mb-6">
+          <Alert className="mb-4 sm:mb-6">
             <AlertDescription>{message}</AlertDescription>
           </Alert>
         )}
 
-        <Tabs defaultValue="config" className="space-y-6">
-          <TabsList className="grid w-full grid-cols-4">
-            <TabsTrigger value="config" className="flex items-center gap-2">
-              <Settings className="h-4 w-4" />
-              Configuration
+        <Tabs defaultValue="config" className="space-y-4 sm:space-y-6">
+          <TabsList className="grid w-full grid-cols-2 sm:grid-cols-4 h-auto">
+            <TabsTrigger value="config" className="flex items-center gap-1 sm:gap-2 px-2 sm:px-3 py-2 text-xs sm:text-sm">
+              <Settings className="h-3 w-3 sm:h-4 sm:w-4" />
+              <span className="hidden sm:inline">Configuration</span>
+              <span className="sm:hidden">Config</span>
             </TabsTrigger>
-            <TabsTrigger value="email" className="flex items-center gap-2">
-              <Mail className="h-4 w-4" />
-              Email Testing
+            <TabsTrigger value="email" className="flex items-center gap-1 sm:gap-2 px-2 sm:px-3 py-2 text-xs sm:text-sm">
+              <Mail className="h-3 w-3 sm:h-4 sm:w-4" />
+              <span className="hidden sm:inline">Email Testing</span>
+              <span className="sm:hidden">Email</span>
             </TabsTrigger>
-            <TabsTrigger value="tests" className="flex items-center gap-2">
-              <TestTube className="h-4 w-4" />
-              Feature Tests
+            <TabsTrigger value="tests" className="flex items-center gap-1 sm:gap-2 px-2 sm:px-3 py-2 text-xs sm:text-sm">
+              <TestTube className="h-3 w-3 sm:h-4 sm:w-4" />
+              <span className="hidden sm:inline">Feature Tests</span>
+              <span className="sm:hidden">Tests</span>
             </TabsTrigger>
-            <TabsTrigger value="products" className="flex items-center gap-2">
-              <CreditCard className="h-4 w-4" />
-              Stripe Products
+            <TabsTrigger value="products" className="flex items-center gap-1 sm:gap-2 px-2 sm:px-3 py-2 text-xs sm:text-sm">
+              <CreditCard className="h-3 w-3 sm:h-4 sm:w-4" />
+              <span className="hidden sm:inline">Stripe Products</span>
+              <span className="sm:hidden">Stripe</span>
             </TabsTrigger>
           </TabsList>
 
-          <TabsContent value="config">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <TabsContent value="config" className="mt-4 sm:mt-6">
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6">
               <Card>
                 <CardHeader>
-                  <CardTitle>System Status</CardTitle>
+                  <CardTitle className="text-lg sm:text-xl">System Status</CardTitle>
                 </CardHeader>
-                <CardContent className="space-y-4">
-                  <div className="flex items-center justify-between">
+                <CardContent className="space-y-3 sm:space-y-4">
+                  <div className="flex items-center justify-between text-sm sm:text-base">
                     <span>Email Configuration</span>
-                    <Badge variant={config.emailConfigured ? "default" : "destructive"}>
+                    <Badge variant={config.emailConfigured ? "default" : "destructive"} className="text-xs">
                       {config.emailConfigured ? 'Configured' : 'Not Configured'}
                     </Badge>
                   </div>
-                  <div className="flex items-center justify-between">
+                  <div className="flex items-center justify-between text-sm sm:text-base">
                     <span>Stripe Configuration</span>
-                    <Badge variant={config.stripeConfigured ? "default" : "destructive"}>
+                    <Badge variant={config.stripeConfigured ? "default" : "destructive"} className="text-xs">
                       {config.stripeConfigured ? 'Configured' : 'Not Configured'}
                     </Badge>
                   </div>
@@ -314,12 +318,13 @@ export default function AdminDashboard() {
             </div>
           </TabsContent>
 
-          <TabsContent value="email">
+          <TabsContent value="email" className="mt-4 sm:mt-6">
             <Card>
               <CardHeader>
-                <CardTitle>Email Testing</CardTitle>
+                <CardTitle className="text-lg sm:text-xl">Email Testing</CardTitle>
+                <p className="text-xs sm:text-sm text-gray-600">Test email functionality and configuration</p>
               </CardHeader>
-              <CardContent>
+              <CardContent className="max-h-96 overflow-y-auto">
                 {!config.currentAdminEmail ? (
                   <Alert>
                     <AlertDescription>
@@ -331,7 +336,7 @@ export default function AdminDashboard() {
                     <p className="text-sm text-gray-600 mb-4">
                       Send test emails to: {config.currentAdminEmail}
                     </p>
-                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4">
                       <Button 
                         onClick={() => sendTestEmail('basic')}
                         disabled={loading}
@@ -360,17 +365,17 @@ export default function AdminDashboard() {
             </Card>
           </TabsContent>
 
-          <TabsContent value="tests">
+          <TabsContent value="tests" className="mt-4 sm:mt-6">
             <Card>
               <CardHeader>
-                <CardTitle className="flex items-center justify-between">
-                  Feature Tests
-                  <Button onClick={runFeatureTests} disabled={loading}>
+                <CardTitle className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                  <span className="text-lg sm:text-xl">Feature Tests</span>
+                  <Button onClick={runFeatureTests} disabled={loading} className="w-full sm:w-auto">
                     {loading ? 'Running...' : 'Run All Tests'}
                   </Button>
                 </CardTitle>
               </CardHeader>
-              <CardContent>
+              <CardContent className="max-h-96 overflow-y-auto">
                 {testResults ? (
                   <div className="space-y-4">
                     <div className="flex items-center gap-4 mb-4">
