@@ -52,7 +52,7 @@ export default function AdminLogin() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-900 to-slate-800 flex items-center justify-center p-4">
+    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 flex items-center justify-center p-4">
       <Card className="w-full max-w-md">
         <CardHeader className="text-center">
           <div className="mx-auto mb-4 w-12 h-12 bg-blue-100 rounded-full flex items-center justify-center">
@@ -90,10 +90,12 @@ export default function AdminLogin() {
             </Button>
           </form>
           
-          <div className="mt-6 p-4 bg-yellow-50 rounded-lg border border-yellow-200">
-            <p className="text-sm text-yellow-800">
-              <strong>For Development:</strong> The admin secret is stored in your environment variables. 
-              Contact the system administrator for access credentials.
+          <div className="mt-6 p-4 bg-gray-50 rounded-lg border border-gray-200">
+            <p className="text-sm text-gray-600">
+              <strong>Security Notice:</strong> Admin access is protected by secure authentication.
+            </p>
+            <p className="text-xs text-gray-500 mt-1">
+              Contact your system administrator for access credentials.
             </p>
           </div>
         </CardContent>

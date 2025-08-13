@@ -216,7 +216,7 @@ export default function AdminDashboard() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 p-4 sm:p-6 lg:p-8 overflow-y-auto">
+    <div className="min-h-screen bg-gradient-to-br from-gray-50 to-blue-50 p-4 sm:p-6 lg:p-8 overflow-y-auto">
       <div className="max-w-7xl mx-auto">
         <div className="mb-6 sm:mb-8">
           <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 mb-2">
@@ -276,10 +276,16 @@ export default function AdminDashboard() {
                       {config.stripeConfigured ? 'Configured' : 'Not Configured'}
                     </Badge>
                   </div>
-                  <div className="flex items-center justify-between">
+                  <div className="flex items-center justify-between text-sm sm:text-base">
                     <span>Admin Email</span>
-                    <Badge variant={config.currentAdminEmail ? "default" : "secondary"}>
+                    <Badge variant={config.currentAdminEmail ? "default" : "secondary"} className="text-xs">
                       {config.currentAdminEmail ? 'Set' : 'Not Set'}
+                    </Badge>
+                  </div>
+                  <div className="flex items-center justify-between text-sm sm:text-base">
+                    <span>Admin Secret</span>
+                    <Badge variant="default" className="text-xs">
+                      admin123 (current)
                     </Badge>
                   </div>
                 </CardContent>
@@ -287,7 +293,7 @@ export default function AdminDashboard() {
 
               <Card>
                 <CardHeader>
-                  <CardTitle>Admin Email Setup</CardTitle>
+                  <CardTitle className="text-lg sm:text-xl">Admin Configuration</CardTitle>
                 </CardHeader>
                 <CardContent className="space-y-4">
                   <div>
@@ -300,19 +306,34 @@ export default function AdminDashboard() {
                       onChange={(e) => setAdminEmail(e.target.value)}
                       placeholder="admin@yourcompany.com"
                     />
+                    <Button 
+                      onClick={setAdminEmailHandler}
+                      disabled={loading || !adminEmail}
+                      className="w-full mt-2"
+                    >
+                      {loading ? 'Updating...' : 'Set Admin Email'}
+                    </Button>
+                    {config.currentAdminEmail && (
+                      <p className="text-sm text-gray-600 mt-2">
+                        Current: {config.currentAdminEmail}
+                      </p>
+                    )}
                   </div>
-                  <Button 
-                    onClick={setAdminEmailHandler}
-                    disabled={loading || !adminEmail}
-                    className="w-full"
-                  >
-                    {loading ? 'Updating...' : 'Set Admin Email'}
-                  </Button>
-                  {config.currentAdminEmail && (
-                    <p className="text-sm text-gray-600">
-                      Current: {config.currentAdminEmail}
-                    </p>
-                  )}
+                  
+                  <div className="border-t pt-4">
+                    <h4 className="text-sm font-medium mb-2">Admin Secret Information</h4>
+                    <div className="bg-blue-50 border border-blue-200 rounded-lg p-3">
+                      <p className="text-sm text-blue-800 mb-2">
+                        <strong>Current Admin Secret:</strong> admin123 (default)
+                      </p>
+                      <p className="text-xs text-blue-600">
+                        To change the admin secret, set the ADMIN_SECRET environment variable in your production deployment.
+                      </p>
+                      <p className="text-xs text-blue-600 mt-1">
+                        Use this secret to access /admin-login on the production site.
+                      </p>
+                    </div>
+                  </div>
                 </CardContent>
               </Card>
             </div>

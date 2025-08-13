@@ -14,6 +14,7 @@ import { TokenUsage, TokenStatusBadge } from "@/components/TokenUsage";
 import { FeatureGhost } from "@/components/FeatureGhost";
 import { UpgradePrompt } from "@/components/UpgradePrompt";
 import { PurchaseTokensModal } from "@/components/PurchaseTokensModal";
+import GpsPermissionHandler, { useGpsPermission } from "@/components/gps-permission-handler";
 import type { Conversation, Message } from "@shared/schema";
 
 // Extended message type with metadata for frontend use
@@ -38,6 +39,7 @@ export default function ChatPage() {
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const { toast } = useToast();
   const queryClient = useQueryClient();
+  const { permissionState, requestLocationIfNeeded } = useGpsPermission();
 
   // Fetch conversations
   const { data: conversations = [], isLoading: loadingConversations } = useQuery<Conversation[]>({
@@ -199,10 +201,28 @@ export default function ChatPage() {
   };
 
   return (
-    <div className="h-screen bg-gradient-to-br from-pastel-blue to-pastel-lavender flex">
-      {/* Sidebar - Conversations */}
-      <div className="w-80 bg-white shadow-lg border-r">
-        <div className="p-4">
+    <div className="h-screen bg-gradient-to-br from-pastel-blue to-pastel-lavender flex flex-col">
+      {/* GPS Permission Handler - Shows only when location permissions are needed */}
+      {permissionState.status !== 'granted' && (
+        <div className="p-4 bg-white border-b shadow-sm">
+          <GpsPermissionHandler 
+            onPermissionChange={(state) => {
+              if (state.status === 'granted') {
+                toast({
+                  title: "Location Access Enabled",
+                  description: "Parents can now request your location for safety purposes.",
+                });
+              }
+            }}
+            showUI={true}
+          />
+        </div>
+      )}
+      
+      <div className="flex-1 flex">
+        {/* Sidebar - Conversations */}
+        <div className="w-80 bg-white shadow-lg border-r">
+          <div className="p-4">
           <div className="flex items-center justify-between mb-4">
             <div className="flex items-center gap-2">
               <h2 className="font-nunito font-bold text-xl text-gray-800">Chat with Stella</h2>
@@ -468,6 +488,7 @@ export default function ChatPage() {
         currentRate={0.001}
         planName="Premium"
       />
+      </div>
     </div>
   );
 }

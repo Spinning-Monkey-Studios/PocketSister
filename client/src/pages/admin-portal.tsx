@@ -298,7 +298,7 @@ export default function AdminPortal() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 overflow-y-auto">
+    <div className="min-h-screen bg-gradient-to-br from-gray-50 to-blue-50 overflow-y-auto">
       <header className="bg-white shadow-sm border-b">
         <div className="container mx-auto px-4 py-4 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
           <div className="flex items-center space-x-3 sm:space-x-4">
@@ -685,6 +685,84 @@ export default function AdminPortal() {
 
           {/* API Configuration Tab */}
           <TabsContent value="config">
+            <Card className="mb-6">
+              <CardHeader>
+                <CardTitle>Complete Feature Testing Suite</CardTitle>
+                <CardDescription>
+                  Test all features of the My Pocket Sister application from this admin portal
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4">
+                  <Button 
+                    variant="outline" 
+                    className="flex flex-col items-center p-4 h-auto"
+                    onClick={() => window.open('/admin-dashboard', '_blank')}
+                    data-testid="button-admin-dashboard"
+                  >
+                    <Settings className="h-6 w-6 mb-2" />
+                    <span className="font-medium">Admin Dashboard</span>
+                    <span className="text-xs text-gray-500">System testing & config</span>
+                  </Button>
+                  
+                  <Button 
+                    variant="outline" 
+                    className="flex flex-col items-center p-4 h-auto"
+                    onClick={() => window.open('/', '_blank')}
+                    data-testid="button-user-app"
+                  >
+                    <Users className="h-6 w-6 mb-2" />
+                    <span className="font-medium">User App</span>
+                    <span className="text-xs text-gray-500">Test user experience</span>
+                  </Button>
+                  
+                  <Button 
+                    variant="outline" 
+                    className="flex flex-col items-center p-4 h-auto"
+                    onClick={() => window.open('/companion', '_blank')}
+                    data-testid="button-ai-companion"
+                  >
+                    <MessageSquare className="h-6 w-6 mb-2" />
+                    <span className="font-medium">AI Companion</span>
+                    <span className="text-xs text-gray-500">Test conversations</span>
+                  </Button>
+                  
+                  <Button 
+                    variant="outline" 
+                    className="flex flex-col items-center p-4 h-auto"
+                    onClick={() => window.open('/avatar-creator', '_blank')}
+                    data-testid="button-avatar-creator"
+                  >
+                    <Users className="h-6 w-6 mb-2" />
+                    <span className="font-medium">Avatar Creator</span>
+                    <span className="text-xs text-gray-500">Test avatar system</span>
+                  </Button>
+                  
+                  <Button 
+                    variant="outline" 
+                    className="flex flex-col items-center p-4 h-auto"
+                    onClick={() => window.open('/parent-portal', '_blank')}
+                    data-testid="button-parent-portal"
+                  >
+                    <Shield className="h-6 w-6 mb-2" />
+                    <span className="font-medium">Parent Portal</span>
+                    <span className="text-xs text-gray-500">Test parent controls</span>
+                  </Button>
+                  
+                  <Button 
+                    variant="outline" 
+                    className="flex flex-col items-center p-4 h-auto"
+                    onClick={() => window.open('/subscription', '_blank')}
+                    data-testid="button-subscription"
+                  >
+                    <Settings className="h-6 w-6 mb-2" />
+                    <span className="font-medium">Subscription</span>
+                    <span className="text-xs text-gray-500">Test payment flow</span>
+                  </Button>
+                </div>
+              </CardContent>
+            </Card>
+            
             <div className="grid gap-6 md:grid-cols-2">
               <Card>
                 <CardHeader>

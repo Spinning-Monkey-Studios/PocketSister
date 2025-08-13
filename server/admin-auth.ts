@@ -10,7 +10,7 @@ export const adminAuth: RequestHandler = async (req, res, next) => {
   }
   
   // Check against environment variable
-  const expectedSecret = process.env.ADMIN_SECRET || 'default-admin-secret-change-me';
+  const expectedSecret = process.env.ADMIN_SECRET || 'admin123';
   
   if (adminSecret !== expectedSecret) {
     return res.status(403).json({ message: 'Invalid admin secret' });
@@ -21,25 +21,33 @@ export const adminAuth: RequestHandler = async (req, res, next) => {
 
 // Simple admin login endpoint
 export const adminLogin: RequestHandler = async (req, res) => {
-  const { secret } = req.body;
-  
-  if (!secret) {
-    return res.status(400).json({ message: 'Admin secret required' });
-  }
-  
-  const expectedSecret = process.env.ADMIN_SECRET || 'admin123';
-  
-  if (secret === expectedSecret) {
-    // Generate a simple session token (in production, use JWT or proper session management)
-    const sessionToken = Buffer.from(`admin-${Date.now()}`).toString('base64');
+  try {
+    const { secret } = req.body;
     
-    res.json({
-      success: true,
-      token: sessionToken,
-      message: 'Admin authenticated successfully'
-    });
-  } else {
-    res.status(403).json({ message: 'Invalid admin secret' });
+    console.log('Admin login attempt:', { secretProvided: !!secret, bodyReceived: !!req.body });
+    
+    if (!secret) {
+      return res.status(400).json({ message: 'Admin secret required' });
+    }
+    
+    const expectedSecret = process.env.ADMIN_SECRET || 'admin123';
+    console.log('Comparing secrets:', { provided: secret, expected: expectedSecret });
+    
+    if (secret === expectedSecret) {
+      // Generate a simple session token (in production, use JWT or proper session management)
+      const sessionToken = Buffer.from(`admin-${Date.now()}`).toString('base64');
+      
+      res.json({
+        success: true,
+        token: sessionToken,
+        message: 'Admin authenticated successfully'
+      });
+    } else {
+      res.status(403).json({ message: 'Invalid admin secret' });
+    }
+  } catch (error) {
+    console.error('Admin login error:', error);
+    res.status(500).json({ message: 'Login error occurred' });
   }
 };
 
@@ -48,7 +56,7 @@ export const isAdmin: RequestHandler = async (req: any, res, next) => {
   try {
     // First check if they have admin secret in headers
     const adminSecret = req.headers['x-admin-secret'] as string;
-    const expectedSecret = process.env.ADMIN_SECRET || 'default-admin-secret-change-me';
+    const expectedSecret = process.env.ADMIN_SECRET || 'admin123';
     
     if (adminSecret === expectedSecret) {
       req.isAdmin = true;

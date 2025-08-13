@@ -13,6 +13,7 @@ import adminAvatarGraphicsRoutes from "./routes/admin-avatar-graphics";
 import backgroundMusicRoutes from "./routes/background-music";
 import featureDocumentationRoutes from "./routes/feature-documentation";
 import adminTestingRoutes from "./routes/admin-testing";
+import { registerAdminRoutes } from "./admin-routes";
 import parentMessagingRoutes from "./routes/parent-messaging";
 import { tokenManager } from "./token-management";
 import { db } from './db.js';
@@ -93,6 +94,19 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Admin avatar graphics management routes
   app.use('/api/admin/avatar-graphics', adminAvatarGraphicsRoutes);
 
+  // Register secure admin authentication routes
+  try {
+    registerAdminRoutes(app);
+    console.log('✅ Secure admin authentication routes registered');
+  } catch (error) {
+    console.error('❌ Admin routes registration failed:', error);
+  }
+
+  // Admin metrics routes
+  const adminMetricsRoutes = await import('./admin-metrics-routes');
+  app.use('/api/admin/metrics', adminMetricsRoutes.default);
+  console.log('✅ Admin metrics routes registered');
+
   // Admin testing routes - use direct import to fix bundling issues
   app.use('/api/admin/testing', adminTestingRoutes);
   console.log('Admin testing routes registered at /api/admin/testing');
@@ -105,6 +119,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   // Parent messaging and device management routes
   app.use('/api/parent-messaging', parentMessagingRoutes);
+
+  // Enhanced parent control routes
+  const enhancedParentControlsRoutes = await import('./routes/enhanced-parent-controls');
+  app.use('/api/enhanced-parent', enhancedParentControlsRoutes.default);
+  console.log('✅ Enhanced parent control routes registered');
 
   // Test Mode Status Endpoint
   app.get('/api/test-mode', (req, res) => {
@@ -215,7 +234,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Admin routes
-  app.post('/api/admin/login', adminAuth, adminLogin);
+  app.post('/api/admin/login', adminLogin);
 
   app.get('/api/admin/users', isAdmin, async (req, res) => {
     try {

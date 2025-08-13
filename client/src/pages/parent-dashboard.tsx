@@ -24,8 +24,12 @@ import {
   AlertTriangle,
   Send,
   Settings,
-  Heart
+  Heart,
+  Navigation,
+  BarChart3
 } from "lucide-react";
+import { EnhancedGpsTracker } from "@/components/enhanced-gps-tracker";
+import { AppUsageControls } from "@/components/app-usage-controls";
 
 interface ParentMessage {
   id: string;
@@ -287,9 +291,10 @@ export default function ParentDashboard() {
       </div>
 
       <Tabs defaultValue="messages" className="space-y-4">
-        <TabsList className="grid w-full grid-cols-4">
+        <TabsList className="grid w-full grid-cols-5">
           <TabsTrigger value="messages">Messages</TabsTrigger>
-          <TabsTrigger value="location">Location</TabsTrigger>
+          <TabsTrigger value="gps">GPS Tracking</TabsTrigger>
+          <TabsTrigger value="usage">App Usage</TabsTrigger>
           <TabsTrigger value="devices">Devices</TabsTrigger>
           <TabsTrigger value="settings">Settings</TabsTrigger>
         </TabsList>
@@ -436,78 +441,82 @@ export default function ParentDashboard() {
           </Card>
         </TabsContent>
 
-        {/* Location Tab */}
-        <TabsContent value="location" className="space-y-4">
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <MapPin className="h-5 w-5" />
-                Child Location Tracking
-              </CardTitle>
-              <CardDescription>
-                Monitor your child's location for safety (requires their permission)
-              </CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="space-y-2">
-                <Label htmlFor="location-child-select">Select Child</Label>
-                <Select value={selectedChildId} onValueChange={setSelectedChildId}>
-                  <SelectTrigger>
-                    <SelectValue placeholder="Choose a child..." />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {children.map((child: any) => (
-                      <SelectItem key={child.id} value={child.id}>
-                        {child.name}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-
-              {selectedChildId && (
-                <div className="space-y-4">
-                  {locationsLoading ? (
-                    <div>Loading location data...</div>
-                  ) : childLocations.length === 0 ? (
-                    <div className="text-center text-gray-500 py-4">
-                      No recent location data available
-                    </div>
-                  ) : (
-                    <div className="space-y-3">
-                      <h4 className="font-medium">Recent Locations (Last 24 hours)</h4>
-                      {childLocations.slice(0, 5).map((location: ChildLocation) => (
-                        <div key={location.id} className="border rounded-lg p-4 space-y-2">
-                          <div className="flex items-center justify-between">
-                            <div className="flex items-center gap-2">
-                              <MapPin className="h-4 w-4" />
-                              <span className="font-medium">
-                                {location.latitude.toFixed(6)}, {location.longitude.toFixed(6)}
-                              </span>
-                              {location.isEmergency && (
-                                <Badge variant="destructive">
-                                  <AlertTriangle className="h-3 w-3 mr-1" />
-                                  Emergency
-                                </Badge>
-                              )}
-                            </div>
-                            {location.batteryLevel && (
-                              <span className="text-sm text-gray-500">
-                                Battery: {location.batteryLevel}%
-                              </span>
-                            )}
-                          </div>
-                          <div className="text-sm text-gray-600">
-                            Accuracy: ±{location.accuracy}m • {formatDateTime(location.timestamp)}
-                          </div>
-                        </div>
+        {/* Enhanced GPS Tracking Tab */}
+        <TabsContent value="gps" className="space-y-4">
+          {selectedChildId && children.length > 0 ? (
+            <EnhancedGpsTracker 
+              childId={selectedChildId} 
+              childName={children.find((c: any) => c.id === selectedChildId)?.name || 'Child'} 
+            />
+          ) : (
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <Navigation className="h-5 w-5" />
+                  Enhanced GPS Tracking
+                </CardTitle>
+                <CardDescription>
+                  Real-time location monitoring with geofencing and safety alerts
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div className="space-y-2">
+                  <Label htmlFor="gps-child-select">Select Child to Track</Label>
+                  <Select value={selectedChildId} onValueChange={setSelectedChildId}>
+                    <SelectTrigger data-testid="select-gps-child">
+                      <SelectValue placeholder="Choose a child..." />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {children.map((child: any) => (
+                        <SelectItem key={child.id} value={child.id}>
+                          {child.name}
+                        </SelectItem>
                       ))}
-                    </div>
-                  )}
+                    </SelectContent>
+                  </Select>
                 </div>
-              )}
-            </CardContent>
-          </Card>
+              </CardContent>
+            </Card>
+          )}
+        </TabsContent>
+
+        {/* App Usage Controls Tab */}
+        <TabsContent value="usage" className="space-y-4">
+          {selectedChildId && children.length > 0 ? (
+            <AppUsageControls 
+              childId={selectedChildId} 
+              childName={children.find((c: any) => c.id === selectedChildId)?.name || 'Child'} 
+            />
+          ) : (
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <BarChart3 className="h-5 w-5" />
+                  App Usage Controls
+                </CardTitle>
+                <CardDescription>
+                  Monitor and control your child's app usage with detailed analytics and smart limits
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div className="space-y-2">
+                  <Label htmlFor="usage-child-select">Select Child to Monitor</Label>
+                  <Select value={selectedChildId} onValueChange={setSelectedChildId}>
+                    <SelectTrigger data-testid="select-usage-child">
+                      <SelectValue placeholder="Choose a child..." />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {children.map((child: any) => (
+                        <SelectItem key={child.id} value={child.id}>
+                          {child.name}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+              </CardContent>
+            </Card>
+          )}
         </TabsContent>
 
         {/* Devices Tab */}

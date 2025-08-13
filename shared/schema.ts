@@ -615,6 +615,9 @@ export const insertSavedConversationSchema = createInsertSchema(savedConversatio
 export const insertConversationGroupSchema = createInsertSchema(conversationGroups);
 export const insertConversationMessageSchema = createInsertSchema(conversationMessages);
 
+// Import admin schema types for comprehensive admin authentication
+export * from './admin-schema';
+
 // Stage 4: Advanced Context Management for Remote AI Integration
 export const contextSessions = pgTable("context_sessions", {
   id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),

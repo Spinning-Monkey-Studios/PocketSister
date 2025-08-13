@@ -10,6 +10,11 @@ import Subscribe from "./pages/subscribe";
 import CompanionSetup from "./pages/companion-setup";
 import AdminPortal from "./pages/admin-portal";
 import AdminLogin from "./pages/admin-login";
+import AdminNewLogin from "./pages/admin-new-login";
+import AdminResetPassword from "./pages/admin-reset-password";
+import AdminUsageMetrics from "./pages/admin-usage-metrics";
+import AdminGpsTracking from "./pages/admin-gps-tracking";
+import AdminOfflineMessages from "./pages/admin-offline-messages";
 import ChatPage from "./pages/chat";
 import ParentPortal from "./pages/parent-portal";
 import ParentDashboard from "./pages/parent-dashboard";
@@ -19,12 +24,17 @@ import NotFound from "./pages/not-found";
 import TestDashboard from "./pages/test-dashboard";
 import UpgradePage from "./pages/UpgradePage";
 import AdminDashboard from "./pages/AdminDashboard";
+import AdminProtectedRoute from "./components/admin-protected-route";
+import OfflineHandler, { ApiErrorHandler, useOnlineStatus } from "./components/offline-handler";
 
 function Router() {
   const { isAuthenticated, isLoading } = useAuth();
+  const isOnline = useOnlineStatus();
 
   return (
-    <Switch>
+    <ApiErrorHandler>
+      <OfflineHandler isOnline={isOnline} />
+      <Switch>
       {isLoading || !isAuthenticated ? (
         <Route path="/" component={Landing} />
       ) : (
@@ -44,10 +54,32 @@ function Router() {
       <Route path="/test-mobile" component={MobileDeviceTest} />
       <Route path="/test-parent-portal" component={ParentPortal} />
       <Route path="/admin-login" component={AdminLogin} />
+      <Route path="/admin-new-login" component={AdminNewLogin} />
+      <Route path="/admin-reset-password" component={AdminResetPassword} />
       <Route path="/admin-portal" component={AdminPortal} />
-      <Route path="/admin-dashboard" component={AdminDashboard} />
+      <Route path="/admin-dashboard">
+        <AdminProtectedRoute>
+          <AdminDashboard />
+        </AdminProtectedRoute>
+      </Route>
+      <Route path="/admin-usage-metrics">
+        <AdminProtectedRoute>
+          <AdminUsageMetrics />
+        </AdminProtectedRoute>
+      </Route>
+      <Route path="/admin-gps-tracking">
+        <AdminProtectedRoute>
+          <AdminGpsTracking />
+        </AdminProtectedRoute>
+      </Route>
+      <Route path="/admin-offline-messages">
+        <AdminProtectedRoute>
+          <AdminOfflineMessages />
+        </AdminProtectedRoute>
+      </Route>
       <Route component={NotFound} />
-    </Switch>
+      </Switch>
+    </ApiErrorHandler>
   );
 }
 
