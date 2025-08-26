@@ -26,42 +26,46 @@ interface PurchaseTokensModalProps {
   planName: string;
 }
 
-const TOKEN_PACKAGES = [
+const CONVERSATION_PACKAGES = [
   {
-    tokens: 10000,
-    label: '10K Tokens',
-    description: '~100 AI chats',
+    conversations: 25,
+    label: '25 Conversations',
+    description: 'Quick boost for this month',
     popular: false,
-    bonus: 0
+    bonus: 0,
+    price: 1.25 // $0.05 per conversation
   },
   {
-    tokens: 25000,
-    label: '25K Tokens',
-    description: '~250 AI chats',
+    conversations: 50,
+    label: '50 Conversations',
+    description: 'Popular choice for families',
     popular: true,
-    bonus: 2500 // 10% bonus
+    bonus: 5, // 10% bonus
+    price: 2.25 // Slight discount
   },
   {
-    tokens: 50000,
-    label: '50K Tokens',
-    description: '~500 AI chats',
+    conversations: 100,
+    label: '100 Conversations',
+    description: 'Great value for heavy users',
     popular: false,
-    bonus: 7500 // 15% bonus
+    bonus: 15, // 15% bonus
+    price: 4.00 // Better discount
   },
   {
-    tokens: 100000,
-    label: '100K Tokens',
-    description: '~1000 AI chats',
+    conversations: 200,
+    label: '200 Conversations',
+    description: 'Maximum family boost',
     popular: false,
-    bonus: 20000 // 20% bonus
+    bonus: 40, // 20% bonus
+    price: 7.00 // Best discount
   }
 ];
 
 const USAGE_EXAMPLES = [
-  { icon: MessageCircle, label: 'AI Chat', tokens: '50-150 tokens', color: 'text-blue-500' },
-  { icon: Image, label: 'Image Generation', tokens: '500-1000 tokens', color: 'text-purple-500' },
-  { icon: Palette, label: 'Avatar Creation', tokens: '200-400 tokens', color: 'text-pink-500' },
-  { icon: Mic, label: 'Voice Synthesis', tokens: '100-300 tokens', color: 'text-green-500' }
+  { icon: MessageCircle, label: 'AI Chat', usage: '1 conversation', color: 'text-blue-500' },
+  { icon: Image, label: 'Image Generation', usage: '~1 conversation', color: 'text-purple-500' },
+  { icon: Palette, label: 'Avatar Creation', usage: '~1 conversation', color: 'text-pink-500' },
+  { icon: Mic, label: 'Voice Synthesis', usage: 'Included in chat', color: 'text-green-500' }
 ];
 
 export function PurchaseTokensModal({ 
@@ -71,36 +75,36 @@ export function PurchaseTokensModal({
   currentRate, 
   planName 
 }: PurchaseTokensModalProps) {
-  const [selectedPackage, setSelectedPackage] = useState(TOKEN_PACKAGES[1]); // Default to popular option
+  const [selectedPackage, setSelectedPackage] = useState(CONVERSATION_PACKAGES[1]); // Default to popular option
   const [customAmount, setCustomAmount] = useState('');
   const [isCustom, setIsCustom] = useState(false);
   const { toast } = useToast();
   const queryClient = useQueryClient();
 
-  const purchaseTokensMutation = useMutation({
-    mutationFn: async (tokenAmount: number) => {
-      const response = await fetch(`/api/tokens/purchase`, {
+  const purchaseConversationsMutation = useMutation({
+    mutationFn: async (conversationAmount: number) => {
+      const response = await fetch(`/api/conversations/purchase`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ childId, tokenAmount })
+        body: JSON.stringify({ childId, conversationAmount })
       });
       
       if (!response.ok) {
         const error = await response.json();
-        throw new Error(error.message || 'Failed to purchase tokens');
+        throw new Error(error.message || 'Failed to purchase conversations');
       }
       
       return response.json();
     },
     onSuccess: (data) => {
       toast({
-        title: "Tokens Purchased Successfully!",
-        description: `Added ${data.tokensAdded?.toLocaleString()} tokens to your account.`,
+        title: "Conversations Purchased Successfully!",
+        description: `Added ${data.conversationsAdded?.toLocaleString()} conversations to your account.`,
         duration: 5000,
       });
       
-      // Refresh token status
-      queryClient.invalidateQueries({ queryKey: ['token-status', childId] });
+      // Refresh conversation status
+      queryClient.invalidateQueries({ queryKey: ['conversation-status', childId] });
       onClose();
     },
     onError: (error: any) => {

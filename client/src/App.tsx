@@ -25,6 +25,7 @@ import TestDashboard from "./pages/test-dashboard";
 import UpgradePage from "./pages/UpgradePage";
 import AdminDashboard from "./pages/AdminDashboard";
 import AdminProtectedRoute from "./components/admin-protected-route";
+import { Support } from "./pages/support";
 import OfflineHandler, { ApiErrorHandler, useOnlineStatus } from "./components/offline-handler";
 
 function Router() {
@@ -48,6 +49,7 @@ function Router() {
           <Route path="/parent-dashboard" component={ParentDashboard} />
           <Route path="/avatar" component={AvatarCreator} />
           <Route path="/upgrade" component={UpgradePage} />
+          <Route path="/support" component={Support} />
         </>
       )}
       <Route path="/test" component={TestDashboard} />

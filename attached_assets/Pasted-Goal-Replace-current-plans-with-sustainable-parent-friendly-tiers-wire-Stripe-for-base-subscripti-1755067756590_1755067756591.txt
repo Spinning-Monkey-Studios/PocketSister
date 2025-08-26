@@ -1,0 +1,145 @@
+Goal: Replace current plans with sustainable, parent-friendly tiers; wire Stripe for base subscription + metered overage; show real-time token usage to families; add alerts and fair-use guardrails.
+
+New Plans (implement exactly)
+Free Trial — $0 / 7 days
+
+Tokens: 500 total
+
+Features: full feature preview, safe-chat filters, parent email verification
+
+Basic — $4.99 / month
+
+Included tokens: 1,500 / mo
+
+Overage: $0.01 per 1,000 tokens
+
+Features: chat, journaling, daily affirmations, parent monitoring
+
+Premium — $9.99 / month
+
+Included tokens: 50,000 / mo
+
+Overage: $0.01 per 1,000 tokens
+
+Features: everything in Basic + voice replies + advanced personality
+
+Family — $19.99 / month
+
+Included tokens: 100,000 / mo (shared) up to 5 child profiles
+
+Overage: $0.01 per 1,000 tokens
+
+Features: everything in Premium + family activity reports + advanced parental controls
+
+Model policy: default to Gemini 1.5 Flash for 90% of turns; auto-route “complex/sensitive” turns to Gemini 1.5 Pro (use a switch in code). This keeps per-user AI cost < ~$1–$5.
+
+What to build/change
+Pricing UI
+
+Update plan cards and perks to the above; add a small “What’s a token?” tooltip (“~750 words ≈ 1,000 tokens”).
+
+Add a usage meter bar: “Used X of Y tokens this month” + “Buy more” CTA.
+
+Add “Most popular” tag to Premium.
+
+Stripe (Products/Prices)
+
+Create 4 Products (Free Trial, Basic, Premium, Family).
+
+For paid plans create two Prices each:
+a) Base subscription (monthly).
+b) Metered price (usage_type: metered, unit = 1k_tokens, amount = $0.01 per unit).
+
+Store new Product/Price IDs in env. Provide a migration script to map legacy subscribers → new price IDs.
+
+Enable Usage Records API to report overage per customer per billing period.
+
+Token Accounting (server)
+
+Add usage_tokens table with columns: id, user_id, family_id (nullable), period_start, period_end, tokens_included, tokens_used, tokens_reported_to_stripe, updated_at.
+
+Middleware wraps LLM calls and increments tokens_used by input+output tokens.
+
+Nightly job:
+
+if tokens_used > tokens_included, compute overage_units = ceil((tokens_used - tokens_included)/1000) and report usage to Stripe (usage_record.create).
+
+keep tokens_reported_to_stripe in sync to avoid double posting.
+
+Parent/Family Dashboard
+
+Show tokens remaining, projection (“~X days left at your pace”), overage to date, and a simple “Add Safety Cap” (pause when overage hits $N).
+
+Buttons: Buy extra tokens now (one-off invoice via Stripe) and Upgrade plan.
+
+Alerts & Fair Use
+
+Email + in-app banners at 70%, 90%, and 100% of included tokens.
+
+If safety cap reached, soft-pause with kind message and one-tap top-up/upgrade.
+
+Rate-limit: max 20 messages per minute per child; block automated abuse.
+
+Model Mix & Cost Controls
+
+Config: AI_MODEL_DEFAULT=gemini-1.5-flash, AI_MODEL_COMPLEX=gemini-1.5-pro.
+
+Policy: escalate to PRO only when: long context > 12k tokens, sensitive/safety topics, or parent-requested “deep” mode.
+
+Add daily cost guardrail: if projected AI spend > ENV DAILY_AI_BUDGET, gracefully defer non-urgent agent jobs and notify admin.
+
+Copywriting (replace plan text)
+
+Section title: Choose Your Plan — “Start with a 7-day free trial. No credit card required.”
+
+Free Trial: “Explore everything for a week. 500 tokens included.”
+
+Basic: “Great for light chats & journaling. 1,500 tokens/month. Add more anytime.”
+
+Premium: “Best for daily conversations. 50,000 tokens/month, voice replies, advanced personality.”
+
+Family: “One subscription for the whole family. 100,000 shared tokens, up to 5 child profiles, activity reports.”
+
+Small print under cards: “Extra usage billed at $0.01 per 1,000 tokens. You control caps and alerts.”
+
+Env & Config (add to .env.example)
+
+ini
+Copy
+Edit
+STRIPE_BASIC_PRICE_ID=
+STRIPE_BASIC_METERED_ID=
+STRIPE_PREMIUM_PRICE_ID=
+STRIPE_PREMIUM_METERED_ID=
+STRIPE_FAMILY_PRICE_ID=
+STRIPE_FAMILY_METERED_ID=
+AI_MODEL_DEFAULT=gemini-1.5-flash
+AI_MODEL_COMPLEX=gemini-1.5-pro
+DAILY_AI_BUDGET=25
+SAFETY_CAP_DEFAULT=5   # dollars of overage before soft-pause
+Migration
+
+Script: migrate existing customers to new price IDs, preserving trial end.
+
+Email template: “We updated our plans to keep prices low and usage fair. Your plan now includes X tokens; extra is just $0.01 per 1,000 tokens. You can set caps and alerts from your parent dashboard.”
+
+QA checklist
+
+Simulate chat usage crossing 70/90/100% and verify alerts + Stripe usage records.
+
+Verify overage invoice line items appear next cycle.
+
+Confirm family sharing decrements from shared pool.
+
+Deliverables
+Updated pricing page & components.
+
+New Stripe products/prices and server-side metered billing.
+
+Token accounting DB + middleware + nightly usage reporter.
+
+Parent dashboard usage meter + caps/alerts.
+
+Migration script + announcement email.
+
+README section “Pricing & Metered Billing” with test steps.

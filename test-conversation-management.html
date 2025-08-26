@@ -1,0 +1,218 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Test Conversation Management System</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-50 p-8">
+    <div class="max-w-4xl mx-auto">
+        <h1 class="text-3xl font-bold text-gray-900 mb-8">Conversation Management System Test</h1>
+        
+        <!-- Track Conversation Section -->
+        <div class="bg-white rounded-lg shadow-md p-6 mb-6">
+            <h2 class="text-xl font-semibold mb-4">Track Conversation</h2>
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
+                <input type="text" id="childId" placeholder="Child ID" class="border rounded px-3 py-2">
+                <input type="text" id="conversationId" placeholder="Conversation ID" class="border rounded px-3 py-2">
+                <select id="aiModel" class="border rounded px-3 py-2">
+                    <option value="gemini-1.5-flash">Gemini 1.5 Flash</option>
+                    <option value="gemini-1.5-pro">Gemini 1.5 Pro</option>
+                </select>
+            </div>
+            <button onclick="trackConversation()" class="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600">
+                Track Conversation
+            </button>
+        </div>
+
+        <!-- Get Usage Stats Section -->
+        <div class="bg-white rounded-lg shadow-md p-6 mb-6">
+            <h2 class="text-xl font-semibold mb-4">Get Usage Statistics</h2>
+            <div class="flex gap-4 mb-4">
+                <input type="text" id="statsChildId" placeholder="Child ID" class="border rounded px-3 py-2 flex-1">
+                <button onclick="getUsageStats()" class="bg-green-500 text-white px-4 py-2 rounded hover:bg-green-600">
+                    Get Stats
+                </button>
+            </div>
+            <div id="statsResult" class="mt-4 p-4 bg-gray-100 rounded"></div>
+        </div>
+
+        <!-- Purchase Conversations Section -->
+        <div class="bg-white rounded-lg shadow-md p-6 mb-6">
+            <h2 class="text-xl font-semibold mb-4">Purchase Additional Conversations</h2>
+            <div class="flex gap-4 mb-4">
+                <input type="text" id="purchaseChildId" placeholder="Child ID" class="border rounded px-3 py-2">
+                <input type="number" id="conversationAmount" placeholder="Number of conversations" class="border rounded px-3 py-2">
+                <button onclick="purchaseConversations()" class="bg-purple-500 text-white px-4 py-2 rounded hover:bg-purple-600">
+                    Purchase
+                </button>
+            </div>
+        </div>
+
+        <!-- AI Model Selection Section -->
+        <div class="bg-white rounded-lg shadow-md p-6 mb-6">
+            <h2 class="text-xl font-semibold mb-4">Smart AI Model Selection</h2>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                <input type="number" id="tokenCount" placeholder="Token Count" class="border rounded px-3 py-2">
+                <select id="userTier" class="border rounded px-3 py-2">
+                    <option value="basic">Basic</option>
+                    <option value="premium">Premium</option>
+                    <option value="family">Family</option>
+                </select>
+                <label class="flex items-center">
+                    <input type="checkbox" id="hasSafetyKeywords" class="mr-2">
+                    Has Safety Keywords
+                </label>
+                <label class="flex items-center">
+                    <input type="checkbox" id="isEmotionalSupport" class="mr-2">
+                    Is Emotional Support
+                </label>
+                <label class="flex items-center">
+                    <input type="checkbox" id="requestsAdvanced" class="mr-2">
+                    Requests Advanced Features
+                </label>
+            </div>
+            <button onclick="selectAIModel()" class="bg-indigo-500 text-white px-4 py-2 rounded hover:bg-indigo-600">
+                Select Model
+            </button>
+            <div id="modelResult" class="mt-4 p-4 bg-gray-100 rounded"></div>
+        </div>
+
+        <!-- Results Section -->
+        <div class="bg-white rounded-lg shadow-md p-6">
+            <h2 class="text-xl font-semibold mb-4">API Response</h2>
+            <pre id="result" class="bg-gray-900 text-green-400 p-4 rounded text-sm overflow-auto max-h-96"></pre>
+        </div>
+    </div>
+
+    <script>
+        async function trackConversation() {
+            const childId = document.getElementById('childId').value;
+            const conversationId = document.getElementById('conversationId').value;
+            const aiModel = document.getElementById('aiModel').value;
+            
+            if (!childId || !conversationId) {
+                alert('Please provide both Child ID and Conversation ID');
+                return;
+            }
+
+            try {
+                const response = await fetch('/api/conversations/track', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        childId,
+                        conversationId,
+                        tokensUsed: Math.floor(Math.random() * 1000) + 100, // Random for testing
+                        aiModel
+                    })
+                });
+                
+                const result = await response.json();
+                document.getElementById('result').textContent = JSON.stringify(result, null, 2);
+            } catch (error) {
+                document.getElementById('result').textContent = 'Error: ' + error.message;
+            }
+        }
+
+        async function getUsageStats() {
+            const childId = document.getElementById('statsChildId').value;
+            
+            if (!childId) {
+                alert('Please provide Child ID');
+                return;
+            }
+
+            try {
+                const response = await fetch(`/api/conversations/usage/${childId}`);
+                const result = await response.json();
+                
+                document.getElementById('result').textContent = JSON.stringify(result, null, 2);
+                
+                // Display formatted stats
+                if (result.success) {
+                    document.getElementById('statsResult').innerHTML = `
+                        <div class="space-y-2">
+                            <p><strong>Plan:</strong> ${result.plan}</p>
+                            <p><strong>Conversations Used:</strong> ${result.conversationsUsed} / ${result.conversationsIncluded}</p>
+                            <p><strong>Remaining:</strong> ${result.remainingConversations}</p>
+                            <p><strong>Overage:</strong> ${result.overageConversations}</p>
+                            <p><strong>Total Cost:</strong> $${result.totalCost.toFixed(2)}</p>
+                            <p><strong>Period:</strong> ${result.period}</p>
+                        </div>
+                    `;
+                }
+            } catch (error) {
+                document.getElementById('result').textContent = 'Error: ' + error.message;
+            }
+        }
+
+        async function purchaseConversations() {
+            const childId = document.getElementById('purchaseChildId').value;
+            const conversationAmount = parseInt(document.getElementById('conversationAmount').value);
+            
+            if (!childId || !conversationAmount) {
+                alert('Please provide both Child ID and conversation amount');
+                return;
+            }
+
+            try {
+                const response = await fetch('/api/conversations/purchase', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ childId, conversationAmount })
+                });
+                
+                const result = await response.json();
+                document.getElementById('result').textContent = JSON.stringify(result, null, 2);
+            } catch (error) {
+                document.getElementById('result').textContent = 'Error: ' + error.message;
+            }
+        }
+
+        async function selectAIModel() {
+            const tokenCount = parseInt(document.getElementById('tokenCount').value) || 0;
+            const hasSafetyKeywords = document.getElementById('hasSafetyKeywords').checked;
+            const isEmotionalSupport = document.getElementById('isEmotionalSupport').checked;
+            const userTier = document.getElementById('userTier').value;
+            const requestsAdvanced = document.getElementById('requestsAdvanced').checked;
+
+            try {
+                const response = await fetch('/api/ai/select-model', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        tokenCount,
+                        hasSafetyKeywords,
+                        isEmotionalSupport,
+                        userTier,
+                        requestsAdvanced
+                    })
+                });
+                
+                const result = await response.json();
+                document.getElementById('result').textContent = JSON.stringify(result, null, 2);
+                
+                // Display formatted model result
+                document.getElementById('modelResult').innerHTML = `
+                    <div class="space-y-2">
+                        <p><strong>Selected Model:</strong> <span class="font-mono">${result.selectedModel}</span></p>
+                        <p><strong>Reasoning:</strong> ${result.reasoning}</p>
+                    </div>
+                `;
+            } catch (error) {
+                document.getElementById('result').textContent = 'Error: ' + error.message;
+            }
+        }
+
+        // Initialize with sample data
+        document.getElementById('childId').value = 'test-child-1';
+        document.getElementById('conversationId').value = 'conv-' + Date.now();
+        document.getElementById('statsChildId').value = 'test-child-1';
+        document.getElementById('purchaseChildId').value = 'test-child-1';
+        document.getElementById('conversationAmount').value = '25';
+        document.getElementById('tokenCount').value = '5000';
+    </script>
+</body>
+</html>
